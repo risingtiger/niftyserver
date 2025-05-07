@@ -1,0 +1,10 @@
+
+.aider*
+node_modules/
+.vscode/
+build/
+static_dist/
+static_dev/
+
+
+**/.DS_Store
