@@ -1,0 +1,41 @@
+{
+  "name": "niftyserver",
+  "description": "Nifty Server",
+  "version": "1.0.2",
+  "private": true,
+  "type": "module",
+  "main": "./build/index.js",
+  "scripts": {
+    "start": "NODE_ENV=gcloud node ./build/index.js",
+    "dev": "NODE_ENV=dev nodemon --watch ./build ./build/index.js",
+    "devhttps": "NODE_ENV=dev USE_HTTPS=true nodemon --watch ./build ./build/index.js",
+    "devdebug": "NODE_ENV=dev nodemon --inspect --watch ./build ./build/index.js",
+    "dist": "NODE_ENV=dist node ./build/index.js",
+    "distdebug": "NODE_ENV=dist node --inspect ./build/index.js"
+  },
+  "nodemonConfig": {
+    "delay": 2500
+  },
+  "engines": {
+    "node": ">=20.17.0 <21.0.0"
+  },
+  "author": "Davis Hammon",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@google-cloud/local-auth": "latest",
+    "@google/genai": "latest",
+    "body-parser": "latest",
+    "brotli": "latest",
+    "cors": "latest",
+    "express": "latest",
+    "firebase-admin": "latest",
+    "google-auth-library": "latest",
+    "googleapis": "latest",
+    "jsdom": "latest",
+    "nodemon": "latest"
+  },
+  "devDependencies": {
+    "@types/brotli": "latest",
+    "@types/cors": "latest"
+  }
+}
