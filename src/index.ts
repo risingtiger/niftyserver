@@ -16,6 +16,7 @@ import { google as googleapis } from "googleapis";
 import zlib from 'node:zlib'
 
 import { Firestore } from "./firestore.js"
+import { DataSync } from "./datasync.js"
 import { InfluxDB } from "./influxdb.js"
 import SSE from "./sse.js"
 import Push_Subscriptions from "./push_subscriptions.js"
