@@ -99,6 +99,7 @@ app.post('/api/refresh_auth', refresh_auth)
 
 
 
+app.get('/api/ping', ping)
 app.post('/api/firestore_retrieve', firestore_retrieve)
 app.post('/api/firestore_add', firestore_add)
 app.post('/api/firestore_patch', firestore_patch)
@@ -416,6 +417,13 @@ async function push_subscriptions_remove(req:any, res:any) {
 	if (!r) { res.status(400).send(); return; }
 
     res.status(200).send(JSON.stringify({message:"saved"}))
+}
+
+
+
+
+async function ping(_req:any, res:any) {
+    res.status(200).send()
 }
 
 
