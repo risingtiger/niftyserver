@@ -133,7 +133,10 @@ app.get("/api/push_subscriptions/remove", push_subscriptions_remove)
 
 
 
-app.get(['/index.html','/','/entry/*file'], entry)
+//app.get(['/index.html','/','/entry/*file'], entry)
+app.get(['/index.html','/'], (req, res) => {
+	res.redirect(301, '/v/home')
+})
 
 
 
