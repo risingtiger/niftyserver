@@ -447,9 +447,10 @@ async function htmlfile(req:any, res:any) {
 	res.set('Content-Type', 'text/html; charset=UTF-8');
 	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
-	// the request contains what page the user wants to see. Get that path AI!
+    // Extract the page path from the request URL
+    const path = req.params.restofpath || 'home'
 
-    const htmlfile = await HTMLFile.runit(STATIC_PREFIX, VAR_NODE_ENV)
+    const htmlfile = await HTMLFile.runit(STATIC_PREFIX, VAR_NODE_ENV, path)
     res.status(200).send(htmlfile)
 }
 
