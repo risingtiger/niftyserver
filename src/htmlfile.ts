@@ -8,7 +8,7 @@ const DIST = "_dist/"
 
 
 
-const allinone = (viewname:str, static_prefix:str) => new Promise(async (resolve, reject) => {
+const allinone = (viewname:str, static_prefix:str, env:str) => new Promise(async (resolve, reject) => {
 
 	const promises:Promise<string>[] = []
 
@@ -39,9 +39,15 @@ const allinone = (viewname:str, static_prefix:str) => new Promise(async (resolve
 	// <script type="module" src="/assets/main.js"></script>
 	// <link rel="stylesheet" href="/assets/index.css">
 
-	// find a string '<!--{--js_css--}-->' inside of indexhtml. replace with mainjs string AI!
-
-	const htmlstr = r[0]
+	// Replace the placeholder with inline JS and CSS
+	let htmlstr = indexhtml
+	
+	// Replace the JS and CSS placeholders with the actual content
+	const jsContent = `<script type="module">${mainjs}</script>`
+	const cssContent = `<style>${maincss}</style><style>${indexcss}</style>`
+	
+	// Replace the placeholder with both JS and CSS content
+	htmlstr = htmlstr.replace('<!--{--js_css--}-->', jsContent + cssContent)
 
 	resolve(htmlstr)	
 })
