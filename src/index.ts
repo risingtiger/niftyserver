@@ -447,10 +447,11 @@ async function htmlfile(req:any, res:any) {
 	res.set('Content-Type', 'text/html; charset=UTF-8');
 	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
-    // Extract the page path from the request URL
-    const path = req.params.restofpath || 'home'
+    const viewname = req.params.restofpath || 'home'
 
-    const htmlfile = await HTMLFile.runit(STATIC_PREFIX, VAR_NODE_ENV, path)
+	// get custom header property called loadtype from request AI!
+
+    const htmlfile = await HTMLFile.allinone(viewname, STATIC_PREFIX)
     res.status(200).send(htmlfile)
 }
 

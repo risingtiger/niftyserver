@@ -8,11 +8,11 @@ const DIST = "_dist/"
 
 
 
-const allinone = (viewname:str, static_prefix:str, env:str) => new Promise(async (resolve, reject) => {
+const allinone = (viewname:str, static_prefix:str) => new Promise(async (resolve, reject) => {
 
 	const promises:Promise<string>[] = []
 
-	let lazyloadpath = getview_fullpath(viewname, static_prefix)
+	let lazyload_js_path = getview_fullpath_js_file(viewname, static_prefix)
 	let r = {} as any
 
 	promises.push(fs.promises.readFile(static_prefix + DIST + "index.html", 'utf8'))
@@ -20,9 +20,7 @@ const allinone = (viewname:str, static_prefix:str, env:str) => new Promise(async
 	promises.push(fs.promises.readFile(static_prefix + DIST + "main.json", 'utf8'))
 	promises.push(fs.promises.readFile(static_prefix + DIST + "main.css", 'utf8'))
 	promises.push(fs.promises.readFile(static_prefix + DIST + "index.css", 'utf8'))
-	promises.push(fs.promises.readFile(static_prefix + lazyloadpath, 'utf8'))
-	promises.push(fs.promises.readFile(static_prefix + DIST + "instance/main.js", 'utf8'))
-	promises.push(fs.promises.readFile(static_prefix + DIST + "instance/main.json", 'utf8'))
+	promises.push(fs.promises.readFile(static_prefix + lazyload_js_path, 'utf8'))
 	
 	try   { r = await Promise.all(promises) }
 	catch { reject(); return; }
@@ -32,22 +30,13 @@ const allinone = (viewname:str, static_prefix:str, env:str) => new Promise(async
 	const json         = r[2]
 	const maincss      = r[3]
 	const indexcss     = r[4]
-	const lazyloadhtml = r[5]
-	const instancemain = r[5]
-	const instancejson = r[5]
+	const lazyloadjs   = r[5]
 
-	// <script type="module" src="/assets/main.js"></script>
-	// <link rel="stylesheet" href="/assets/index.css">
-
-	// Replace the placeholder with inline JS and CSS
-	let htmlstr = indexhtml
 	
-	// Replace the JS and CSS placeholders with the actual content
-	const jsContent = `<script type="module">${mainjs}</script>`
-	const cssContent = `<style>${maincss}</style><style>${indexcss}</style>`
+	const main_js_script_str = `<script type = "module">${mainjs} \n\n\n\n ${json}</script><script type = "module">${lazyloadjs}</script>`
+	const css_link_str       = `<style>${maincss}</style><style>${indexcss}</style>`
 	
-	// Replace the placeholder with both JS and CSS content
-	htmlstr = htmlstr.replace('<!--{--js_css--}-->', jsContent + cssContent)
+	const htmlstr = indexhtml.replace('<!--{--js_css--}-->', main_js_script_str + `\n\n\n` + css_link_str)
 
 	resolve(htmlstr)	
 })
@@ -55,7 +44,7 @@ const allinone = (viewname:str, static_prefix:str, env:str) => new Promise(async
 
 
 
-const getview_fullpath = (viewname:str, static_prefix:str) => {
+const getview_fullpath_js_file = (viewname:str, static_prefix:str) => {
 
 	let lazyloadpath = ""
 
@@ -68,8 +57,6 @@ const getview_fullpath = (viewname:str, static_prefix:str) => {
 		case "home" : lazyloadpath = static_prefix  + DIST + "instance/lazy/views/home/home.js"
 		case "machines" : lazyloadpath = static_prefix  + DIST + "instance/lazy/views/machines.js"
 		case "notifications" : lazyloadpath = static_prefix  + DIST + "instance/lazy/notifications/notifications.js"
-
-		default : lazyloadpath = static_prefix  + DIST + "instance/lazy/views/home/home.js"
 	}
 
 	return lazyloadpath
