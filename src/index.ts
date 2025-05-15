@@ -461,9 +461,20 @@ async function htmlfile(req:any, res:any) {
 	}
 	catch {
 		returnstr = "Could not load view: " + viewname
+		res.status(400).send(returnstr)
+		return
 	}
 
-    res.status(200).send(returnstr)
+    // Compress the HTML content using brotli
+    zlib.brotliCompress(returnstr, {
+        params: {
+            [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
+            [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
+        },
+    }, (_err:any, result:any) => {
+        res.set('Content-Encoding', 'br');
+        res.status(200).send(result)
+    })
 }
 
 
