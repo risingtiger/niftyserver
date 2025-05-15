@@ -4,11 +4,11 @@ import { str } from './defs.js'
 import fs from "fs";
 
 
-const DIST = "_dist/"
+const DIST = "dist/"
 
 
 
-const allinone = (viewname:str, static_prefix:str, loadtype:str = 'default') => new Promise(async (resolve, reject) => {
+const allinone = (viewname:str, static_prefix:str) => new Promise<string>(async (resolve, reject) => {
 
 	const promises:Promise<string>[] = []
 
@@ -25,26 +25,23 @@ const allinone = (viewname:str, static_prefix:str, loadtype:str = 'default') => 
 	try   { r = await Promise.all(promises) }
 	catch { reject(); return; }
 	
-	const indexhtml    = r[0]
-	const mainjs       = r[1]
-	const json         = r[2]
-	const maincss      = r[3]
-	const indexcss     = r[4]
-	const lazyloadjs   = r[5]
+	const indexhtml       = r[0]
+	const mainjs          = r[1]
+	const json            = JSON.parse(r[2])
+	const maincss         = r[3]
+	const indexcss        = r[4]
+	const lazyloadjs      = r[5]
 
+
+	let lazyref           = json.MAIN.views.find((v:any)     => v.name == viewname)
+	if (!lazyref) lazyref = json.INSTANCE.views.find((v:any) => v.name == viewname)
+
+	const scriptslist:string[] = []
+	const checkedlist:string[] = []
+	await get_all_dependencies_as_script_tag_strings(json.MAIN.views, lazyref, static_prefix, scriptslist, checkedlist)
 	
-	// Customize loading based on loadtype
-	let main_js_script_str, css_link_str;
-	
-	if (loadtype === 'minimal') {
-		// Minimal loading - only essential scripts
-		main_js_script_str = `<script type = "module">${mainjs}</script><script type = "module">${lazyloadjs}</script>`
-		css_link_str = `<style>${indexcss}</style>`
-	} else {
-		// Default loading - all scripts and styles
-		main_js_script_str = `<script type = "module">${mainjs} \n\n\n\n ${json}</script><script type = "module">${lazyloadjs}</script>`
-		css_link_str = `<style>${maincss}</style><style>${indexcss}</style>`
-	}
+	const main_js_script_str = `<script type="module">${mainjs}</script>\n<script type="module">${lazyloadjs}</script>\n${scriptslist.join('\n')}`
+	const css_link_str       = `<style>${maincss}</style><style>${indexcss}</style>`
 	
 	const htmlstr = indexhtml.replace('<!--{--js_css--}-->', main_js_script_str + `\n\n\n` + css_link_str)
 
@@ -72,6 +69,50 @@ const getview_fullpath_js_file = (viewname:str, static_prefix:str) => {
 	return lazyloadpath
 }
 
+
+
+
+const get_all_dependencies_as_script_tag_strings = (all_lazyrefs:any, lazyref:any, static_prefix:str, scriptslist:string[], checkedlist:string[]) => new Promise(async (resolve, _reject) => {
+	let dependencies = lazyref.dependencies
+	let promises:Promise<string>[] = []
+
+	for (let i=0; i<dependencies.length; i++) {
+		let dep = dependencies[i]
+
+		const already_checked_lazyref = checkedlist.find((v:any) => v.name == dep.name)
+		if (already_checked_lazyref) continue
+
+		checkedlist.push(dep.name)
+
+		let dep_lazyref = all_lazyrefs.find((v:any) => v.name == dep.name)
+
+		let lazyref_path     = static_prefix + DIST + (dep_lazyref.is_instance ? 'instance/' : '') + "lazy/" + dep_lazyref.type + "/" + dep_lazyref.name + "/" + dep_lazyref.name + ".js"
+
+		promises.push(fs.promises.readFile(lazyref_path, 'utf8'))
+	}
+
+	const rloads = await Promise.all(promises)
+	for (const rload of rloads) {
+		let dep_lazyref_contents = rload.toString()
+		checkedlist.push( `<script type="module">${dep_lazyref_contents}</script>` )
+	}
+
+	for (let i=0; i<dependencies.length; i++) {
+		let dep = dependencies[i]
+		let dep_lazyref = all_lazyrefs.find((v:any) => v.name == dep.name)
+		await get_all_dependencies_as_script_tag_strings(all_lazyrefs, dep_lazyref, static_prefix, scriptslist, checkedlist)
+	}
+
+	resolve(1)
+})
+
+
+
+
+const get_lazyref_file = (lazyref:any, static_prefix:str) => new Promise<string>(async (resolve, reject) => {
+
+	resolve(lazyref_contents)
+})
 
 
 
