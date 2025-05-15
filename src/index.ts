@@ -16,13 +16,11 @@ import { google as googleapis } from "googleapis";
 import zlib from 'node:zlib'
 
 import { Firestore } from "./firestore.js"
-import { DataSync } from "./datasync.js"
 import { InfluxDB } from "./influxdb.js"
 import SSE from "./sse.js"
 import Push_Subscriptions from "./push_subscriptions.js"
 import FileRequest from "./filerequest.js"
-import Entry from "./entry.js"
-import HTMLStr from "./htmlstr.js"
+import HTMLFile from "./htmlfile.js"
 import Logger from "./logger.js"
 import Emailing from "./emailing.js"
 
@@ -142,7 +140,7 @@ app.get(['/index.html','/'], (req, res) => {
 
 
 
-app.get('/v/*restofpath', htmlstr)
+app.get('/v/*restofpath', htmlfile)
 
 
 
@@ -444,14 +442,15 @@ async function ping(_req:any, res:any) {
 
 
 
-async function htmlstr(_req:any, res:any) {
+async function htmlfile(req:any, res:any) {
 
-	//res.set('Cache-Control', 'private, max-age=300');
 	res.set('Content-Type', 'text/html; charset=UTF-8');
 	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
-    const htmlstr = await HTMLStr.runit(STATIC_PREFIX, VAR_NODE_ENV)
-    res.status(200).send(htmlstr)
+	// the request contains what page the user wants to see. Get that path AI!
+
+    const htmlfile = await HTMLFile.runit(STATIC_PREFIX, VAR_NODE_ENV)
+    res.status(200).send(htmlfile)
 }
 
 
