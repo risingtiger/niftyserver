@@ -15,12 +15,13 @@ const allinone = (viewname:str, static_prefix:str) => new Promise<string>(async 
 	let lazyload_js_path = getview_fullpath_js_file(viewname, static_prefix)
 	let r = {} as any
 
-	promises.push(fs.promises.readFile(static_prefix + DIST + "index.html", 'utf8'))
-	promises.push(fs.promises.readFile(static_prefix + DIST + "main.js", 'utf8'))
-	promises.push(fs.promises.readFile(static_prefix + DIST + "main.json", 'utf8'))
-	promises.push(fs.promises.readFile(static_prefix + DIST + "main.css", 'utf8'))
-	promises.push(fs.promises.readFile(static_prefix + DIST + "index.css", 'utf8'))
-	promises.push(fs.promises.readFile(static_prefix + lazyload_js_path, 'utf8'))
+	const basePath = process.cwd() + '/'
+	promises.push(fs.promises.readFile(basePath + static_prefix + DIST + "index.html", 'utf8'))
+	promises.push(fs.promises.readFile(basePath + static_prefix + DIST + "main.js", 'utf8'))
+	promises.push(fs.promises.readFile(basePath + static_prefix + DIST + "main.json", 'utf8'))
+	promises.push(fs.promises.readFile(basePath + static_prefix + DIST + "main.css", 'utf8'))
+	promises.push(fs.promises.readFile(basePath + static_prefix + DIST + "index.css", 'utf8'))
+	promises.push(fs.promises.readFile(basePath + static_prefix + lazyload_js_path, 'utf8'))
 	
 	try   { r = await Promise.all(promises) }
 	catch { reject(); return; }
@@ -56,14 +57,26 @@ const getview_fullpath_js_file = (viewname:str, static_prefix:str) => {
 	let lazyloadpath = ""
 
 	switch (viewname) {
-
-		case "setup_push_allowance" : lazyloadpath = static_prefix  + DIST + "lazy/views/setup_push_allowance/setup_push_allowance.js"
-		case "appmsg" : lazyloadpath = static_prefix  + DIST + "lazy/views/appmsg/appmsg.js"
-		case "login" : lazyloadpath = static_prefix  + DIST + "lazy/views/login/login.js"
-
-		case "home" : lazyloadpath = static_prefix  + DIST + "instance/lazy/views/home/home.js"
-		case "machines" : lazyloadpath = static_prefix  + DIST + "instance/lazy/views/machines.js"
-		case "notifications" : lazyloadpath = static_prefix  + DIST + "instance/lazy/notifications/notifications.js"
+		case "setup_push_allowance": 
+			lazyloadpath = "lazy/views/setup_push_allowance/setup_push_allowance.js"
+			break
+		case "appmsg": 
+			lazyloadpath = "lazy/views/appmsg/appmsg.js"
+			break
+		case "login": 
+			lazyloadpath = "lazy/views/login/login.js"
+			break
+		case "home": 
+			lazyloadpath = "instance/lazy/views/home/home.js"
+			break
+		case "machines": 
+			lazyloadpath = "instance/lazy/views/machines.js"
+			break
+		case "notifications": 
+			lazyloadpath = "instance/lazy/notifications/notifications.js"
+			break
+		default:
+			lazyloadpath = "lazy/views/home/home.js" // Default fallback
 	}
 
 	return lazyloadpath
@@ -86,7 +99,8 @@ const get_all_dependencies_as_script_tag_strings = (all_lazyrefs:any, lazyref:an
 
 		let dep_lazyref = all_lazyrefs.find((v:any) => v.name == dep.name)
 
-		let lazyref_path     = static_prefix + DIST + (dep_lazyref.is_instance ? 'instance/' : '') + "lazy/" + dep_lazyref.type + "/" + dep_lazyref.name + "/" + dep_lazyref.name + ".js"
+		const basePath = process.cwd() + '/'
+		let lazyref_path = basePath + static_prefix + DIST + (dep_lazyref.is_instance ? 'instance/' : '') + "lazy/" + dep_lazyref.type + "/" + dep_lazyref.name + "/" + dep_lazyref.name + ".js"
 
 		promises.push(fs.promises.readFile(lazyref_path, 'utf8'))
 	}
