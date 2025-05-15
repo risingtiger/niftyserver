@@ -21,7 +21,7 @@ const allinone = (viewname:str, static_prefix:str) => new Promise<string>(async 
 	promises.push(fs.promises.readFile(basePath + static_prefix + DIST + "main.json", 'utf8'))
 	promises.push(fs.promises.readFile(basePath + static_prefix + DIST + "main.css", 'utf8'))
 	promises.push(fs.promises.readFile(basePath + static_prefix + DIST + "index.css", 'utf8'))
-	promises.push(fs.promises.readFile(basePath + static_prefix + lazyload_js_path, 'utf8'))
+	promises.push(fs.promises.readFile(basePath + static_prefix + DIST + lazyload_js_path, 'utf8'))
 	
 	try   { r = await Promise.all(promises) }
 	catch { reject(); return; }
@@ -34,12 +34,13 @@ const allinone = (viewname:str, static_prefix:str) => new Promise<string>(async 
 	const lazyloadjs      = r[5]
 
 
-	let lazyref           = json.MAIN.views.find((v:any)     => v.name == viewname)
-	if (!lazyref) lazyref = json.INSTANCE.views.find((v:any) => v.name == viewname)
+	let lazyref           = json.MAIN.LAZYLOADS.find((v:any)     => v.name == viewname)
+	if (!lazyref) lazyref = json.INSTANCE.LAZYLOADS.find((v:any) => v.name == viewname)
 
 	const scriptslist:string[] = []
 	const checkedlist:string[] = []
-	await get_all_dependencies_as_script_tag_strings(json.MAIN.views, lazyref, static_prefix, scriptslist, checkedlist)
+	const combined_lazyloads = json.MAIN.LAZYLOADS.concat(json.INSTANCE.LAZYLOADS)
+	await get_all_dependencies_as_script_tag_strings(combined_lazyloads, lazyref, static_prefix, scriptslist, checkedlist)
 	
 	const main_js_script_str = `<script type="module">${mainjs}</script>\n<script type="module">${lazyloadjs}</script>\n${scriptslist.join('\n')}`
 	const css_link_str       = `<style>${maincss}</style><style>${indexcss}</style>`
