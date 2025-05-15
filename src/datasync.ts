@@ -25,102 +25,44 @@ type UnsuccessfulOperationInfo = {
 const ProcessPendingSyncOperations = (db:any, operations:PendingSyncOperationT[]) => new Promise<UnsuccessfulOperationInfo[] | null>(async (resolve, _reject) => {
     const unsuccessfulOperations: UnsuccessfulOperationInfo[] = [];
 
-    if (!db) {
-        console.error("ProcessPendingSyncOperations: Firestore database instance is not available.");
-        resolve(null); 
-        return;
-    }
-
     for (const op of operations) {
-        try {
-            const docRef = db.collection(op.target_store).doc(op.docId);
 
-            if (op.operation_type === 'add') {
-                const existingDocSnapshot = await docRef.get();
-                
-                if (existingDocSnapshot.exists()) {
-                    const existingData = existingDocSnapshot.data() as { ts?: num } | undefined;
+		try {
+			if (op.operation_type === 'patch' || op.operation_type === 'delete') {
+				const existing_record_snapshot = await db.collection(op.target_store).doc(op.docId).get();
+				const existing_record = existing_record_snapshot.data()
 
-                    if (existingData && typeof existingData.ts === 'number' && existingData.ts > op.oldts) {
-                        unsuccessfulOperations.push({ 
-                            collection: op.target_store, 
-                            id: op.docId, 
-                            reason: `Skipped add: existing document ts (${existingData.ts}) > operation oldts (${op.oldts})` 
-                        });
-                        continue;
-                    }
+				if (existing_record.ts > op.oldts) {
+					push_to_unsuccessful_operations(unsuccessfulOperations, op, `Skipped ${op.operation_type}: existing document ts (${existing_record.ts}) > operation oldts (${op.oldts})`);
+					continue;
+				}
+			}
 
-                    if (existingData && typeof existingData.ts === 'number' && op.ts <= existingData.ts) {
-                        unsuccessfulOperations.push({ 
-                            collection: op.target_store, 
-                            id: op.docId, 
-                            reason: `Skipped add: operation ts (${op.ts}) is not newer than existing ts (${existingData.ts})` 
-                        });
-                        continue;
-                    }
-                }
-                const dataToAdd = { ...op.payload, ts: op.ts };
-                await docRef.set(dataToAdd);
-
-            } else if (op.operation_type === 'patch') {
-                const existingDocSnapshot = await docRef.get();
-
-                if (!existingDocSnapshot.exists()) {
-                    unsuccessfulOperations.push({ 
-                        collection: op.target_store, 
-                        id: op.docId, 
-                        reason: "Skipped patch: document does not exist" 
-                    });
-                    continue;
-                }
-
-                const existingData = existingDocSnapshot.data() as { ts?: num } | undefined;
-
-                if (existingData && typeof existingData.ts === 'number' && existingData.ts > op.oldts) {
-                    unsuccessfulOperations.push({ 
-                        collection: op.target_store, 
-                        id: op.docId, 
-                        reason: `Skipped patch: existing document ts (${existingData.ts}) > operation oldts (${op.oldts})` 
-                    });
-                    continue;
-                }
-                
-                const dataToPatch = { ...op.payload, ts: op.ts };
-                await docRef.update(dataToPatch);
-
-            } else if (op.operation_type === 'delete') {
-                const existingDocSnapshot = await docRef.get();
-
-                if (!existingDocSnapshot.exists()) {
-                    continue; 
-                }
-
-                const existingData = existingDocSnapshot.data() as { ts?: num } | undefined;
-
-                if (existingData && typeof existingData.ts === 'number' && existingData.ts > op.oldts) {
-                    unsuccessfulOperations.push({ 
-                        collection: op.target_store, 
-                        id: op.docId, 
-                        reason: `Skipped delete: existing document ts (${existingData.ts}) > operation oldts (${op.oldts})` 
-                    });
-                    continue;
-                }
-                
-                await docRef.delete();
-            }
-        } catch (error: any) {
-            console.error(`ProcessPendingSyncOperations: Error processing operation for ${op.target_store}/${op.docId}:`, error);
-            unsuccessfulOperations.push({ 
-                collection: op.target_store, 
-                id: op.docId, 
-                reason: `Firestore operation failed: ${error.message || String(error)}` 
-            });
-        }
+			if (op.operation_type === 'add' || op.operation_type === 'patch') {
+				await db.collection(op.target_store).doc(op.docId).set({ ...op.payload, ts: op.ts });
+			}
+			else if (op.operation_type === 'delete') {
+				await db.collection(op.target_store).doc(op.docId).delete();
+			}
+		} 
+		catch (error) {
+			push_to_unsuccessful_operations(unsuccessfulOperations, op, `Failed to ${op.operation_type} document: ${error}`);
+		}
     }
 
     resolve(unsuccessfulOperations);
 })
 
+
+
+
+const push_to_unsuccessful_operations = (unsuccessfulOperations: UnsuccessfulOperationInfo[], op: PendingSyncOperationT, reason: str) => {
+	unsuccessfulOperations.push({ 
+		collection: op.target_store, 
+		id: op.docId, 
+		reason 
+	});
+}
 
 
 

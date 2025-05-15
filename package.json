@@ -11,7 +11,8 @@
     "devhttps": "NODE_ENV=dev USE_HTTPS=true nodemon --watch ./build ./build/index.js",
     "devdebug": "NODE_ENV=dev nodemon --inspect --watch ./build ./build/index.js",
     "dist": "NODE_ENV=dist node ./build/index.js",
-    "distdebug": "NODE_ENV=dist node --inspect ./build/index.js"
+    "distdebug": "NODE_ENV=dist node --inspect ./build/index.js",
+    "test": "mocha --require ts-node/register --require test/setup.ts 'test/**/*.test.ts'"
   },
   "nodemonConfig": {
     "delay": 2500
@@ -36,6 +37,15 @@
   },
   "devDependencies": {
     "@types/brotli": "latest",
-    "@types/cors": "latest"
+    "@types/cors": "latest",
+    "mocha": "^10.3.0",
+    "chai": "^4.3.10",
+    "sinon": "^17.0.1",
+    "sinon-chai": "^3.7.0",
+    "ts-node": "^10.9.2",
+    "@types/mocha": "^10.0.6",
+    "@types/chai": "^4.3.11",
+    "@types/sinon": "^17.0.3",
+    "@types/sinon-chai": "^3.2.12"
   }
 }

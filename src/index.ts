@@ -97,7 +97,7 @@ app.get([
 
 app.post('/api/refresh_auth', refresh_auth)
 
-
+app.get('/api/reset_password', reset_password)
 
 app.get('/api/ping', ping)
 app.post('/api/firestore_retrieve', firestore_retrieve)
@@ -155,6 +155,21 @@ app.get('/v/*restofpath', htmlstr)
 async function assets_general(req:any, res:any) {
 	const fileurl = req.url
     FileRequest.runit(fileurl, res, VAR_NODE_ENV, STATIC_PREFIX);
+}
+
+
+
+
+async function reset_password(req:any, res:any) {
+
+	const auth = getAuth();
+	const link = await auth.generatePasswordResetLink(req.query.email).catch(()=>null)
+	if (!link) {
+		res.status(400).send()
+		return
+	}
+
+	res.status(200).send({link:link})
 }
 
 
@@ -424,16 +439,6 @@ async function push_subscriptions_remove(req:any, res:any) {
 
 async function ping(_req:any, res:any) {
     res.status(200).send()
-}
-
-
-
-
-async function entry(req:any, res:any) {
-
-	//res.set('Cache-Control', 'private, max-age=300');
-    const htmlstr = await Entry.runit(req, res, STATIC_PREFIX, VAR_NODE_ENV)
-    res.status(200).send(htmlstr)
 }
 
 

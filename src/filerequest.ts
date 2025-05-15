@@ -36,7 +36,6 @@ function runit(fileurl:str, res:any, env:str, static_prefix:str)  {   return new
         case ".html" : // will only ever be index.html
 
             res.set('Content-Type', 'text/html; charset=UTF-8');
-            res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
             path = absolute_prefix + "index.html"
 
@@ -101,9 +100,6 @@ function runit(fileurl:str, res:any, env:str, static_prefix:str)  {   return new
 
 
 async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:any) {
-
-	res.set('Content-Type', 'text/html; charset=UTF-8');
-	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
     const path_without_extension = jspath.substring(0, jspath.length - jsextension.length)
 
