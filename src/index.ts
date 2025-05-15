@@ -444,16 +444,26 @@ async function ping(_req:any, res:any) {
 
 async function htmlfile(req:any, res:any) {
 
+	let returnstr:str = ""
+
 	res.set('Content-Type', 'text/html; charset=UTF-8');
 	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
     const viewname = req.params.restofpath || 'home'
-
-    // Extract loadtype from request headers
     const loadtype = req.headers.loadtype || 'default'
 
-    const htmlfile = await HTMLFile.allinone(viewname, STATIC_PREFIX, loadtype)
-    res.status(200).send(htmlfile)
+	try {
+		if (loadtype === 'default') {
+			returnstr = await HTMLFile.allinone(viewname, STATIC_PREFIX)
+		} else {
+			returnstr = ""
+		}
+	}
+	catch {
+		returnstr = "Could not load view: " + viewname
+	}
+
+    res.status(200).send(returnstr)
 }
 
 
