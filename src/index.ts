@@ -449,9 +449,10 @@ async function htmlfile(req:any, res:any) {
 
     const viewname = req.params.restofpath || 'home'
 
-	// get custom header property called loadtype from request AI!
+    // Extract loadtype from request headers
+    const loadtype = req.headers.loadtype || 'default'
 
-    const htmlfile = await HTMLFile.allinone(viewname, STATIC_PREFIX)
+    const htmlfile = await HTMLFile.allinone(viewname, STATIC_PREFIX, loadtype)
     res.status(200).send(htmlfile)
 }
 

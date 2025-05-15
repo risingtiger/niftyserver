@@ -8,7 +8,7 @@ const DIST = "_dist/"
 
 
 
-const allinone = (viewname:str, static_prefix:str) => new Promise(async (resolve, reject) => {
+const allinone = (viewname:str, static_prefix:str, loadtype:str = 'default') => new Promise(async (resolve, reject) => {
 
 	const promises:Promise<string>[] = []
 
@@ -33,8 +33,18 @@ const allinone = (viewname:str, static_prefix:str) => new Promise(async (resolve
 	const lazyloadjs   = r[5]
 
 	
-	const main_js_script_str = `<script type = "module">${mainjs} \n\n\n\n ${json}</script><script type = "module">${lazyloadjs}</script>`
-	const css_link_str       = `<style>${maincss}</style><style>${indexcss}</style>`
+	// Customize loading based on loadtype
+	let main_js_script_str, css_link_str;
+	
+	if (loadtype === 'minimal') {
+		// Minimal loading - only essential scripts
+		main_js_script_str = `<script type = "module">${mainjs}</script><script type = "module">${lazyloadjs}</script>`
+		css_link_str = `<style>${indexcss}</style>`
+	} else {
+		// Default loading - all scripts and styles
+		main_js_script_str = `<script type = "module">${mainjs} \n\n\n\n ${json}</script><script type = "module">${lazyloadjs}</script>`
+		css_link_str = `<style>${maincss}</style><style>${indexcss}</style>`
+	}
 	
 	const htmlstr = indexhtml.replace('<!--{--js_css--}-->', main_js_script_str + `\n\n\n` + css_link_str)
 
