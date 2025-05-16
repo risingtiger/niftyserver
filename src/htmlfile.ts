@@ -55,13 +55,46 @@ const allinone = (pathparts:str[], static_prefix:str) => new Promise<string>(asy
 
 
 
-const getlazyload = (pathparts, all_lazyloads) => {
-
-	// pathparts looks something like: ["machines"] or ["machines", "1234"]
-	// all_lazyload array has objects, each having a urlmatch like: "^machines$" or "^machines/:id$"
-	// each "/" in urlmatch corresponds to a part in pathparts
-	// write code to match the pathparts with the urlmatch
-	// AI!
+const getlazyload = (pathparts:str[], all_lazyloads:any[]) => {
+	// Find the lazyload that matches the pathparts
+	for (const lazyload of all_lazyloads) {
+		if (!lazyload.urlmatch) continue;
+		
+		// Remove ^ and $ from the urlmatch
+		const urlPattern = lazyload.urlmatch.replace(/^\^|\$$/g, '');
+		
+		// Split the urlPattern by '/'
+		const patternParts = urlPattern.split('/');
+		
+		// If the number of parts doesn't match, skip this lazyload
+		if (patternParts.length !== pathparts.length) continue;
+		
+		let isMatch = true;
+		
+		// Check each part of the pattern against the corresponding pathpart
+		for (let i = 0; i < patternParts.length; i++) {
+			const pattern = patternParts[i];
+			const part = pathparts[i];
+			
+			// If the pattern part starts with ':', it's a parameter and matches anything
+			if (pattern.startsWith(':')) {
+				continue;
+			}
+			
+			// Otherwise, the pattern part must exactly match the path part
+			if (pattern !== part) {
+				isMatch = false;
+				break;
+			}
+		}
+		
+		if (isMatch) {
+			return lazyload;
+		}
+	}
+	
+	// Return null or a default lazyload if no match is found
+	return null;
 }
 
 
