@@ -1,6 +1,3 @@
-
-
-
 type str = string; type int = number; type num = number; type bool = boolean;
 
 import { SSETriggersE, GenericRowT } from "./defs.js"
@@ -226,8 +223,57 @@ const GetBatch = (db:any, paths:str[], tses:number[], runid:str) => new Promise<
 
 const SyncPending = (db:any, all_pending:PendingSyncOperationT[]) => new Promise<boolean>(async (res, rej)=> {
 
-	const batch = db.batch()
+	try {
+		const batch = db.batch()
 
+		for (const pending of all_pending) {
+			const collection_ref = db.collection(pending.target_store)
+
+			if (pending.operation_type === 'add') {
+				if (!pending.payload) continue
+
+				const new_doc_ref = collection_ref.doc()
+				const data_to_add = { ...pending.payload, ts: pending.ts }
+				const parsed_data = parse_data_to_update(db, data_to_add)
+				
+				batch.set(new_doc_ref, parsed_data)
+			}
+			else if (pending.operation_type === 'patch') {
+				if (!pending.payload) continue
+
+				const doc_ref = collection_ref.doc(pending.docId)
+				const existing_doc = await doc_ref.get()
+
+				if (!existing_doc.exists) continue
+
+				const existing_data = existing_doc.data()
+				if (existing_data.ts > pending.oldts) continue
+
+				const data_to_patch = { ...pending.payload, ts: pending.ts }
+				const parsed_data = parse_data_to_update(db, data_to_patch)
+				
+				batch.set(doc_ref, parsed_data)
+			}
+			else if (pending.operation_type === 'delete') {
+				const doc_ref = collection_ref.doc(pending.docId)
+				const existing_doc = await doc_ref.get()
+
+				if (!existing_doc.exists) continue
+
+				const existing_data = existing_doc.data()
+				if (existing_data.ts > pending.oldts) continue
+
+				batch.delete(doc_ref)
+			}
+		}
+
+		await batch.commit()
+		res(true)
+	}
+	catch (error) {
+		console.error('SyncPending error:', error)
+		rej(error)
+	}
 })
 
 
