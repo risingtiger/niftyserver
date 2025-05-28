@@ -216,8 +216,7 @@ const GetBatch = (db:any, paths:str[], tses:number[], runid:str) => new Promise<
 
 const SyncPending = (db:any, all_pending:any) => new Promise<boolean>(async (res, rej)=> {
 
-	// creat a new variable called batch that is a firestore (from db argument) Batch
-	
+	const batch = db.batch()
 
 })
 
@@ -387,6 +386,3 @@ function parse_data_to_update(db:any, data:any) {
 
 const Firestore = { Retrieve, Add, Patch, Delete, GetBatch, SyncPending }
 export { Firestore }
-
-
-
