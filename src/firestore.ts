@@ -3,12 +3,22 @@
 
 type str = string; type int = number; type num = number; type bool = boolean;
 
-import { SSETriggersE } from "./defs.js"
+import { SSETriggersE, GenericRowT } from "./defs.js"
 
 
 
 
 type RetrieveOptsT   = { order_by:str|null, ts:int|null, limit:int|null, startafter: string|null }
+
+type OperationTypeT = 'add' | 'patch' | 'delete';
+type PendingSyncOperationT = {
+	operation_type: OperationTypeT;
+	target_store: str;
+	docId: str;
+	ts: num;
+	oldts: num;
+	payload: GenericRowT | null;
+};
 
 
 
@@ -214,7 +224,7 @@ const GetBatch = (db:any, paths:str[], tses:number[], runid:str) => new Promise<
 
 
 
-const SyncPending = (db:any, all_pending:any) => new Promise<boolean>(async (res, rej)=> {
+const SyncPending = (db:any, all_pending:PendingSyncOperationT[]) => new Promise<boolean>(async (res, rej)=> {
 
 	const batch = db.batch()
 
