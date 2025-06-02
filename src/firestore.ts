@@ -411,19 +411,38 @@ function parse_request(db:any, pathstr:str, ts:int|null) : any {
 
 
 function parse_data_to_update(db:any, data:any) {
-	for (const key in data) {
-		if (typeof data[key] === 'object') {
-			if (data[key].__path) {
-				const docref                     = db.collection(data[key].__path[0]).doc(data[key].__path[1]);
-				data[key] = docref;
-			}
-			else {
-				for(const keyb in data[key]) {
-					data[key+'.'+keyb] = data[key][keyb];
+	
+	function flatten_object(obj:any, prefix:str = '') {
+		const flattened:any = {}
+		
+		for (const key in obj) {
+			const full_key = prefix ? `${prefix}.${key}` : key
+			
+			if (typeof obj[key] === 'object' && obj[key] !== null) {
+				if (obj[key].__path) {
+					const docref = db.collection(obj[key].__path[0]).doc(obj[key].__path[1])
+					flattened[full_key] = docref
+				}
+				else {
+					const nested_flattened = flatten_object(obj[key], full_key)
+					Object.assign(flattened, nested_flattened)
 				}
 			}
+			else {
+				flattened[full_key] = obj[key]
+			}
 		}
+		
+		return flattened
 	}
+	
+	const flattened = flatten_object(data)
+	
+	// Clear original data and assign flattened properties
+	for (const key in data) {
+		delete data[key]
+	}
+	Object.assign(data, flattened)
 }
 
 
