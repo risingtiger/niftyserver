@@ -411,12 +411,36 @@ function parse_request(db:any, pathstr:str, ts:int|null) : any {
 
 
 function parse_data_to_update(db:any, data:any) {
+	const keys_to_delete: str[] = []
+	const keys_to_add: { [key: str]: any } = {}
+	
 	for (const key in data) {
-		if (typeof data[key] === 'object') {
+		if (typeof data[key] === 'object' && data[key] !== null) {
 			if (data[key].__path) {
-				const docref                     = db.collection(data[key].__path[0]).doc(data[key].__path[1]);
+				const docref = db.collection(data[key].__path[0]).doc(data[key].__path[1]);
 				data[key] = docref;
+			} else {
+				// Flatten nested object into dot notation
+				flatten_object(data[key], key, keys_to_add)
+				keys_to_delete.push(key)
 			}
+		}
+	}
+	
+	// Remove original nested objects
+	keys_to_delete.forEach(key => delete data[key])
+	
+	// Add flattened keys
+	Object.assign(data, keys_to_add)
+}
+
+function flatten_object(obj: any, prefix: str, result: { [key: str]: any }) {
+	for (const key in obj) {
+		const new_key = `${prefix}.${key}`
+		if (typeof obj[key] === 'object' && obj[key] !== null && !obj[key].__path) {
+			flatten_object(obj[key], new_key, result)
+		} else {
+			result[new_key] = obj[key]
 		}
 	}
 }
