@@ -86,20 +86,20 @@ function Retrieve(db:any, pathstr:str[], opts:RetrieveOptsT[]|null|undefined) { 
 
 
 
-function Add(db:any, sse:any, path:str, newdoc:{[key:string]:any}, id:str, ts:num, sse_id:str|null) {   return new Promise<null|number>(async (res, _rej)=> {
+function Add(db:any, sse:any, path:str, newdata:{[key:string]:any}, id:str, ts:num, sse_id:str|null) {   return new Promise<null|number>(async (res, _rej)=> {
 
     let d = parse_request(db, path, null);
     const doc_ref = d.doc(id)
 
-	newdoc.ts = ts
+	newdata.ts = ts
 
-	const parseddata = parse_data_to_update(db, newdoc);
+	parse_data_to_update(db, newdata);
     
-    const r = await doc_ref.set(parseddata).catch(()=> null);
+    const r = await doc_ref.add(newdata).catch(()=> null);
     if (r === null) { res(null); return; }
     
     // Use the original newdoc with id for the event
-    sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_ADD, { path, data: parseddata }, { exclude:[ sse_id ] });
+    sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_ADD, { path, data: newdata }, { exclude:[ sse_id ] });
 
     res(1)
 })}
@@ -107,7 +107,7 @@ function Add(db:any, sse:any, path:str, newdoc:{[key:string]:any}, id:str, ts:nu
 
 
 
-function Patch(db:any, sse:any, path:str, data:any, oldts:num, newts:num, sse_id:str|null) {   return new Promise<null|number>(async (res, _rej)=> {
+function Patch(db:any, sse:any, path:str, newdata:any, oldts:num, newts:num, sse_id:str|null) {   return new Promise<null|number>(async (res, _rej)=> {
 
     let d = parse_request(db, path, null);
     
@@ -117,17 +117,17 @@ function Patch(db:any, sse:any, path:str, data:any, oldts:num, newts:num, sse_id
 	
 	const existingdata = docsnapshot.data();
 	
-	if (oldts !== existingdata.ts) {  console.log("patch is older ts:", path); res(null); return; }
+	if (oldts < existingdata.ts) {  console.log("patch is older ts:", path); res(null); return; }
 
-	data.ts = newts
+	newdata.ts = newts
 	
-	const parseddata = parse_data_to_update(db, data);
+	parse_data_to_update(db, newdata);
 	
 	// Only update the fields that are provided in the data object
-	const r = await d.update(parseddata);
+	const r = await d.update(newdata);
 	if (r === null) { res(null); return; }
 	
-	const updateddata = { ...existingdata, ...parseddata };
+	const updateddata = { ...existingdata, ...newdata };
 	
 	// Trigger event with the complete merged document of existing and new data -- so we dont pull again from database
 	sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_PATCH, { path: path, data: updateddata }, { exclude:[ sse_id ] });
@@ -230,8 +230,6 @@ const SyncPending = (db:any, all_pending:PendingSyncOperationT[]) => new Promise
 			const collection_ref = db.collection(pending.target_store)
 
 			if (pending.operation_type === 'add') {
-				if (!pending.payload) continue
-
 				const new_doc_ref = collection_ref.doc()
 				const data_to_add = { ...pending.payload, ts: pending.ts }
 				const parsed_data = parse_data_to_update(db, data_to_add)
@@ -239,8 +237,6 @@ const SyncPending = (db:any, all_pending:PendingSyncOperationT[]) => new Promise
 				batch.set(new_doc_ref, parsed_data)
 			}
 			else if (pending.operation_type === 'patch') {
-				if (!pending.payload) continue
-
 				const doc_ref = collection_ref.doc(pending.docId)
 				const existing_doc = await doc_ref.get()
 
@@ -415,26 +411,14 @@ function parse_request(db:any, pathstr:str, ts:int|null) : any {
 
 
 function parse_data_to_update(db:any, data:any) {
-	const datatoupdate = { ...data };
-	for (const key in datatoupdate) {
-		if (key.endsWith('__ref')) {
-			const actualpropertyname         = key.substring(0, key.length - 5); // Remove '__ref' suffix
-			const pathValue                  = datatoupdate[key];
-			
-			const last_slash_index           = pathValue.lastIndexOf('/');
-			const collectionpath             = pathValue.substring(0, last_slash_index);
-			const docid                      = pathValue.substring(last_slash_index + 1);
-			
-			const docref                     = db.collection(collectionpath).doc(docid);
-			
-			datatoupdate[actualpropertyname] = docref;
-			
-			// Remove the original __ref property
-			delete datatoupdate[key];
+	for (const key in data) {
+		if (typeof data[key] === 'object') {
+			if (data[key].__path) {
+				const docref                     = db.collection(data[key].__path[0]).doc(data[key].__path[1]);
+				data[key] = docref;
+			}
 		}
 	}
-
-	return datatoupdate;
 }
 
 
