@@ -111,34 +111,51 @@ function Patch(db:any, sse:any, path:str, newdata:any, sse_id:str|null) {   retu
 
 	// newdata should always have the ts field set from client side
 
-    let d = parse_request(db, path, null);
+    let doc_ref = parse_request(db, path, null);
     
-	// First, get the existing document to check if exists, but more importantly, to check if the incoming patch is older and should be ignored
-	const docsnapshot = await d.get();
-	if (!docsnapshot.exists)   { 
-		res( 10 ); // code for its been deleted 
-		return;
-	}
-	
-	const existingdata = docsnapshot.data();
-	
-	if (newdata.ts < existingdata.ts) {  
-		res( { id: docsnapshot.id, ...existingdata } ); // send back newer data
-		return;
-	}
+	try {
+		const result = await db.runTransaction(async (transaction:any) => {
+			// Get the existing document within the transaction
+			const docsnapshot = await transaction.get(doc_ref);
+			
+			if (!docsnapshot.exists) { 
+				return { code: 10 }; // code for its been deleted 
+			}
+			
+			const existingdata = docsnapshot.data();
+			
+			if (newdata.ts < existingdata.ts) {  
+				return { code: 'newer_data', data: { id: docsnapshot.id, ...existingdata } }; // send back newer data
+			}
 
-	parse_data_to_update(db, newdata);
-	
-	// Only update the fields that are provided in the data object
-	const r = await d.update(newdata);
-	if (r === null) { res(11); return; } // data write error
-	
-	const updatedrecord = { ...existingdata, ...newdata };
-	
-	// Trigger event with the complete merged document of existing and new data -- so we dont pull again from database
-	sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_PATCH, { path: path, data: updatedrecord }, { exclude:[ sse_id ] });
-	
-	res(1);
+			parse_data_to_update(db, newdata);
+			
+			// Update the document within the transaction
+			transaction.update(doc_ref, newdata);
+			
+			const updatedrecord = { ...existingdata, ...newdata };
+			
+			return { code: 1, updatedrecord, path };
+		});
+
+		if (result.code === 10) {
+			res(10);
+			return;
+		}
+		
+		if (result.code === 'newer_data') {
+			res(result.data);
+			return;
+		}
+		
+		// Trigger event with the complete merged document of existing and new data -- so we dont pull again from database
+		sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_PATCH, { path: result.path, data: result.updatedrecord }, { exclude:[ sse_id ] });
+		
+		res(1);
+	}
+	catch (error) {
+		res(11); // data write error
+	}
 })}
 
 
