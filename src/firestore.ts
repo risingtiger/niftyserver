@@ -107,30 +107,36 @@ function Add(db:any, sse:any, path:str, newdata:{[key:string]:any}, id:str, ts:n
 
 
 
-function Patch(db:any, sse:any, path:str, newdata:any, oldts:num, newts:num, sse_id:str|null) {   return new Promise<null|number>(async (res, _rej)=> {
+function Patch(db:any, sse:any, path:str, newdata:any, sse_id:str|null) {   return new Promise<number>(async (res, _rej)=> {
+
+	// newdata should always have the ts field set from client side
 
     let d = parse_request(db, path, null);
     
 	// First, get the existing document to check if exists, but more importantly, to check if the incoming patch is older and should be ignored
 	const docsnapshot = await d.get();
-	if (!docsnapshot.exists)   { console.error("Document does not exist:", path); res(null); return;  }
+	if (!docsnapshot.exists)   { 
+		res( 10 ); // code for its been deleted 
+		return;
+	}
 	
 	const existingdata = docsnapshot.data();
 	
-	if (oldts < existingdata.ts) {  console.log("patch is older ts:", path); res(null); return; }
+	if (newdata.ts < existingdata.ts) {  
+		res( { id: docsnapshot.id, ...existingdata } ); // send back newer data
+		return;
+	}
 
-	newdata.ts = newts
-	
 	parse_data_to_update(db, newdata);
 	
 	// Only update the fields that are provided in the data object
 	const r = await d.update(newdata);
-	if (r === null) { res(null); return; }
+	if (r === null) { res(11); return; } // data write error
 	
-	const updateddata = { ...existingdata, ...newdata };
+	const updatedrecord = { ...existingdata, ...newdata };
 	
 	// Trigger event with the complete merged document of existing and new data -- so we dont pull again from database
-	sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_PATCH, { path: path, data: updateddata }, { exclude:[ sse_id ] });
+	sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_PATCH, { path: path, data: updatedrecord }, { exclude:[ sse_id ] });
 	
 	res(1);
 })}
@@ -411,38 +417,12 @@ function parse_request(db:any, pathstr:str, ts:int|null) : any {
 
 
 function parse_data_to_update(db:any, data:any) {
-	
-	function flatten_object(obj:any, prefix:str = '') {
-		const flattened:any = {}
-		
-		for (const key in obj) {
-			const full_key = prefix ? `${prefix}.${key}` : key
-			
-			if (typeof obj[key] === 'object' && obj[key] !== null) {
-				if (obj[key].__path) {
-					const docref = db.collection(obj[key].__path[0]).doc(obj[key].__path[1])
-					flattened[full_key] = docref
-				}
-				else {
-					const nested_flattened = flatten_object(obj[key], full_key)
-					Object.assign(flattened, nested_flattened)
-				}
-			}
-			else {
-				flattened[full_key] = obj[key]
-			}
-		}
-		
-		return flattened
-	}
-	
-	const flattened = flatten_object(data)
-	
-	// Clear original data and assign flattened properties
 	for (const key in data) {
-		delete data[key]
+		if (typeof data[key] === 'object' && data[key].__path) {
+			const docref                     = db.collection(data[key].__path[0]).doc(data[key].__path[1]);
+			data[key] = docref;
+		}
 	}
-	Object.assign(data, flattened)
 }
 
 
