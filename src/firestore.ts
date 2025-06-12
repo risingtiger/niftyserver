@@ -9,11 +9,12 @@ type RetrieveOptsT   = { order_by:str|null, ts:int|null, limit:int|null, startaf
 
 type OperationTypeT = 'add' | 'patch' | 'delete';
 type PendingSyncOperationT = {
+	id: str,
+	docid: str;
 	operation_type: OperationTypeT;
 	target_store: str;
-	docId: str;
 	ts: num;
-	oldts: num;
+	oldts?: num;
 	payload: GenericRowT | null;
 };
 
@@ -86,20 +87,21 @@ function Retrieve(db:any, pathstr:str[], opts:RetrieveOptsT[]|null|undefined) { 
 
 
 
-function Add(db:any, sse:any, path:str, newdata:{[key:string]:any}, id:str, ts:num, sse_id:str|null) {   return new Promise<null|number>(async (res, _rej)=> {
+function Add(db:any, sse:any, path:str, data:{[key:string]:any}, sse_id:str|null) {   return new Promise<null|number>(async (res, _rej)=> {
+
+	if (!data.id || data.ts) {  res(null); return; }
+
 
     let d = parse_request(db, path, null);
-    const doc_ref = d.doc(id)
+    const doc_ref = d.doc(data.id)
 
-	newdata.ts = ts
-
-	parse_data_to_update(db, newdata);
+	parse_data_to_update(db, data);
     
-    const r = await doc_ref.add(newdata).catch(()=> null);
+    const r = await doc_ref.add(data).catch(()=> null);
     if (r === null) { res(null); return; }
     
     // Use the original newdoc with id for the event
-    sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_ADD, { path, data: newdata }, { exclude:[ sse_id ] });
+    sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_ADD, { path, data }, { exclude:[ sse_id ] });
 
     res(1)
 })}
@@ -107,70 +109,99 @@ function Add(db:any, sse:any, path:str, newdata:{[key:string]:any}, id:str, ts:n
 
 
 
-function Patch(db:any, sse:any, path:str, newdata:any, sse_id:str|null) {   return new Promise<number>(async (res, _rej)=> {
+type	 PatchReturnT = { code:0|1|10|11, data?:GenericRowT };
+function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|null) {   return new Promise<PatchReturnT>(async (res, _rej)=> {
+
+	// code: 0 = transaction failed
+	// code: 1 = is ok
+	// code: 10 = is deleted or not exists
+	// code: 11 = is older data, send back newer data
 
 	// newdata should always have the ts field set from client side
 
     let doc_ref = parse_request(db, path, null);
     
 	try {
-		const result = await db.runTransaction(async (transaction:any) => {
-			// Get the existing document within the transaction
+		const r = await db.runTransaction(async (transaction:any) => {
+
+			let data:GenericRowT = {}
+
 			const docsnapshot = await transaction.get(doc_ref);
 			
-			if (!docsnapshot.exists) { 
-				return { code: 10 }; // code for its been deleted 
+			if (!docsnapshot.exists) {  
+				data = {};
+				return { code:10, data }; 
 			}
 			
 			const existingdata = docsnapshot.data();
 			
-			if (newdata.ts < existingdata.ts) {  
-				return { code: 'newer_data', data: { id: docsnapshot.id, ...existingdata } }; // send back newer data
+			if (oldts < existingdata.ts) {   
+				data = { id: docsnapshot.id, ...existingdata };  
+				return { code:11, data };
 			}
 
 			parse_data_to_update(db, newdata);
 			
-			// Update the document within the transaction
-			transaction.update(doc_ref, newdata);
+			await transaction.update(doc_ref, newdata);
 			
-			const updatedrecord = { ...existingdata, ...newdata };
-			
-			return { code: 1, updatedrecord, path };
+			data = { ...existingdata, ...newdata };
+			return { code:1, existingdata };	
 		});
 
-		if (result.code === 10) {
-			res(10);
-			return;
+		if (r.code === 1) {
+			// newdata might contain properties that are keys containing sub objects like this: 'parentproperty.childproperty'
+			// so we need to merge the newdata with the existingdata but expand the sub objects AI!
+			sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_PATCH, { path, data:r.data }, { exclude:[ sse_id ] });
 		}
-		
-		if (result.code === 'newer_data') {
-			res(result.data);
-			return;
-		}
-		
-		// Trigger event with the complete merged document of existing and new data -- so we dont pull again from database
-		sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_PATCH, { path: result.path, data: result.updatedrecord }, { exclude:[ sse_id ] });
-		
-		res(1);
+
+		res(r);
 	}
 	catch (error) {
-		res(11); // data write error
+		res({ code:0, data:{} });
 	}
 })}
 
 
 
 
-function Delete(db:any, sse:any, path:str, sse_id:str|null) {   return new Promise<null|number>(async (res, _rej)=> {
+function Delete(db:any, sse:any, path:str, oldts:num, ts:num, sse_id:str|null) {   return new Promise<GenericRowT>(async (res, _rej)=> {
 
-    let d = parse_request(db, path, null);
-    
-    const r = await d.delete().catch(() => null);
-    if (r === null) { res(null); return; }
-    
-    sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_DELETE, { path }, { exclude:[ sse_id ] });
-    
-    res(1);
+    let doc_ref = parse_request(db, path, null);
+
+	try {
+		const r = await db.runTransaction(async (transaction:any) => {
+
+			let data:GenericRowT = {}
+
+			const docsnapshot = await transaction.get(doc_ref);
+			
+			if (!docsnapshot.exists) {  
+				data = {};
+				return { code:10, data }; 
+			}
+			
+			const existingdata = docsnapshot.data();
+			
+			if (oldts < existingdata.ts) {   
+				data = { id: docsnapshot.id, ...existingdata };  
+				return { code:11, data };
+			}
+
+			existingdata.isdeleted = true;
+			await transaction.update(doc_ref, existingdata);
+			
+			return { code:1, data:{} };	
+		});
+
+		if (r.code === 1) {
+			sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_DELETE, { path, ts }, { exclude:[ sse_id ] });
+		}
+
+		res(r);
+	}
+	catch (error) {
+		res({ code:0, data:{} });
+	}
 })}
 
 
@@ -244,12 +275,17 @@ const GetBatch = (db:any, paths:str[], tses:number[], runid:str) => new Promise<
 
 
 
-const SyncPending = (db:any, all_pending:PendingSyncOperationT[]) => new Promise<boolean>(async (res, rej)=> {
+const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_id:str|null) => new Promise<boolean>(async (res, rej)=> {
+
+	if (!all_pending || all_pending.length === 0) { res(true); return; }
+
+	const all_collections = new Set<str>()
 
 	try {
 		const batch = db.batch()
 
 		for (const pending of all_pending) {
+
 			const collection_ref = db.collection(pending.target_store)
 
 			if (pending.operation_type === 'add') {
@@ -260,13 +296,13 @@ const SyncPending = (db:any, all_pending:PendingSyncOperationT[]) => new Promise
 				batch.set(new_doc_ref, parsed_data)
 			}
 			else if (pending.operation_type === 'patch') {
-				const doc_ref = collection_ref.doc(pending.docId)
+				const doc_ref = collection_ref.doc(pending.docid)
 				const existing_doc = await doc_ref.get()
 
 				if (!existing_doc.exists) continue
 
 				const existing_data = existing_doc.data()
-				if (existing_data.ts > pending.oldts) continue
+				if (existing_data.ts > pending.oldts!) continue
 
 				const data_to_patch = { ...pending.payload, ts: pending.ts }
 				const parsed_data = parse_data_to_update(db, data_to_patch)
@@ -274,19 +310,26 @@ const SyncPending = (db:any, all_pending:PendingSyncOperationT[]) => new Promise
 				batch.set(doc_ref, parsed_data)
 			}
 			else if (pending.operation_type === 'delete') {
-				const doc_ref = collection_ref.doc(pending.docId)
+				const doc_ref = collection_ref.doc(pending.docid)
 				const existing_doc = await doc_ref.get()
 
 				if (!existing_doc.exists) continue
 
 				const existing_data = existing_doc.data()
-				if (existing_data.ts > pending.oldts) continue
+				if (existing_data.ts > pending.oldts!) continue
 
-				batch.delete(doc_ref)
+				existing_data.ts = pending.payload!.ts
+				existing_data.isdeleted = true
+				batch.set(doc_ref, existing_data)
 			}
+
+			all_collections.add(pending.target_store) // Set forces unique collection names 
 		}
 
 		await batch.commit()
+
+		sse.TriggerEvent(SSETriggersE.FIRESTORE_COLLECTION, { paths:all_collections }, { exclude:[ sse_id ] });
+
 		res(true)
 	}
 	catch (error) {
@@ -435,12 +478,30 @@ function parse_request(db:any, pathstr:str, ts:int|null) : any {
 
 function parse_data_to_update(db:any, data:any) {
 	for (const key in data) {
-		if (typeof data[key] === 'object' && data[key].__path) {
-			const docref                     = db.collection(data[key].__path[0]).doc(data[key].__path[1]);
-			data[key] = docref;
+		if (typeof data[key] === 'object') {
+			if (data[key].__path) {
+				const docref = db.collection(data[key].__path[0]).doc(data[key].__path[1]);
+				data[key] = docref;
+			}
+			else {
+				parse_data_to_update(db, data[key]);
+			}
+		}
+		else {
+			// leave untouched
 		}
 	}
 }
+/*
+const update_record_with_new_data = (record: GenericRowT, newdata: any): void => {
+	for (const key in newdata) {
+		if (typeof record[key] == 'object') 
+			update_record_with_new_data(record[key], newdata[key])
+		else 
+			record[key] = newdata[key]
+	}
+}
+*/
 
 
 
