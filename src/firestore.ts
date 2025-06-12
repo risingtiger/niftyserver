@@ -149,9 +149,32 @@ function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|nul
 		});
 
 		if (r.code === 1) {
-			// newdata might contain properties that are keys containing sub objects like this: 'parentproperty.childproperty'
-			// so we need to merge the newdata with the existingdata but expand the sub objects AI!
-			sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_PATCH, { path, data:r.data }, { exclude:[ sse_id ] });
+			// Merge newdata with existingdata, expanding dot notation properties
+			const merged_data = { ...r.existingdata }
+			
+			for (const key in newdata) {
+				if (key.includes('.')) {
+					// Handle dot notation like 'parent.child'
+					const keys = key.split('.')
+					let current = merged_data
+					
+					// Navigate to the parent object, creating nested objects as needed
+					for (let i = 0; i < keys.length - 1; i++) {
+						if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+							current[keys[i]] = {}
+						}
+						current = current[keys[i]]
+					}
+					
+					// Set the final value
+					current[keys[keys.length - 1]] = newdata[key]
+				} else {
+					// Direct property assignment
+					merged_data[key] = newdata[key]
+				}
+			}
+			
+			sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_PATCH, { path, data: merged_data }, { exclude:[ sse_id ] });
 		}
 
 		res(r);
