@@ -143,8 +143,7 @@ app.get(['/index.html','/'], (req, res) => {
 
 
 app.get('/v/*restofpath', htmlfile)
-// make another route. examples are: '/v/machines/parts/addmachine/addmachine.js' and '/v/machines/parts/notifications/notifications.js'
-// AI!
+app.get('/v/*restofpath/*.js', view_javascript)
 
 
 
@@ -454,6 +453,12 @@ async function ping(_req:any, res:any) {
 
 
 
+
+async function view_javascript(req:any, res:any) {
+	const full_path = req.path
+	const fileurl = full_path.replace('/v/', '/assets/')
+	FileRequest.runit(fileurl, res, VAR_NODE_ENV, STATIC_PREFIX)
+}
 
 async function htmlfile(req:any, res:any) {
 
