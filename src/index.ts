@@ -86,7 +86,8 @@ app.get("/apple-touch-icon-precomposed.png", (_req:any, res:any) => {
 app.get([
     '/app.webmanifest', 
     '/assets/*file',
-    '/sw.js'
+    '/sw.js',
+	'/shared_worker.js'
 ], assets_general)
 
 
@@ -103,6 +104,7 @@ app.post('/api/firestore_add', firestore_add)
 app.post('/api/firestore_patch', firestore_patch)
 app.post('/api/firestore_delete', firestore_delete)
 app.post('/api/firestore_get_batch', firestore_get_batch)
+app.post('/api/firestore_sync_pending', firestore_sync_pending)
 
 
 
@@ -121,7 +123,7 @@ app.get("/sse_add_listener",     cors(), sse_add_listener)
 
 
 
-app.post("/api/logger/save", logger_save)
+app.post("/api/logger/save", express.text(), logger_save)
 app.get("/api/logger/get",   logger_get)
 
 
@@ -141,6 +143,9 @@ app.get(['/index.html','/'], (req, res) => {
 
 
 app.get('/v/*restofpath', htmlfile)
+// make another route. examples are: '/v/machines/parts/addmachine/addmachine.js' and '/v/machines/parts/notifications/notifications.js'
+// AI!
+
 
 
 
@@ -204,7 +209,6 @@ async function firestore_retrieve(req:any, res:any) {
     const r = await Firestore.Retrieve(db, req.body.paths, req.body.opts)
 	if (r === null) { res.statusMessage("unable to retrieve firestore"); res.status(400).send(); return; }
 
-	
     const jsoned = JSON.stringify(r)
     zlib.brotliCompress(jsoned, {
         params: {
@@ -226,9 +230,7 @@ async function firestore_add(req:any, res:any) {
     if (! await validate_request(res, req)) return 
 
     const sse_id = req.headers['sse_id'] || null
-	const id = req.body.id
-	const ts = req.body.ts
-    const r = await Firestore.Add(db, SSE, req.body.path, req.body.data, id, ts, sse_id)
+    const r = await Firestore.Add(db, SSE, req.body.path, req.body.data, sse_id)
 	if (r === null) { res.statusMessage("unable to add firestore"); res.status(400).send(); return; }
 
 	res.status(200).send()
@@ -241,16 +243,13 @@ async function firestore_patch(req:any, res:any) {
 
     if (! await validate_request(res, req)) return 
 
-	const sse_id = req.headers['sse_id'] || null
-	const path = req.body.path
-	const data = req.body.data
-	const oldts = req.body.oldts
-	const newts = req.body.newts
+	const sse_id  = req.headers['sse_id'] || null
+	const path    = req.body.path
+	const oldts   = req.body.oldtd
+	const newdata = req.body.newdata
 
-    const r = await Firestore.Patch(db, SSE, path, data, oldts, newts, sse_id)
-	if (r === null) { res.statusMessage("unable to patch firestore"); res.status(400).send(); return; }
-
-	res.status(200).send(JSON.stringify({ok: !r ? false : true}))
+    const r = await Firestore.Patch(db, SSE, path, oldts, newdata, sse_id)
+	res.status(200).send(JSON.stringify(r))
 }
 
 
@@ -261,7 +260,7 @@ async function firestore_delete(req:any, res:any) {
     if (! await validate_request(res, req)) return 
 
 	const sse_id = req.headers['sse_id'] || null
-    const r = await Firestore.Delete(db, SSE, req.body.path, sse_id)
+    const r = await Firestore.Delete(db, SSE, req.body.path, req.body.oldts, req.body.ts, sse_id)
 	if (r === null) { res.statusMessage("unable to delete firestore"); res.status(400).send(); return; }
 
 	res.status(200).send(JSON.stringify({ok: !r ? false : true}))
@@ -288,6 +287,25 @@ async function firestore_get_batch(req:any, res:any) {
         res.set('Content-Encoding', 'br');
         res.status(200).send(result)
     })
+}
+
+
+
+
+async function firestore_sync_pending(req:any, res:any) {
+
+    if (! await validate_request(res, req)) return 
+
+	const sse_id = req.headers['sse_id'] || null
+
+	let r:any
+
+    try   { r = await Firestore.SyncPending(db, SSE, req.body, sse_id); }
+	catch {}
+
+	if (!r) {  res.status(400).send(); return }
+
+	res.status(200).send({})
 }
 
 
@@ -379,12 +397,7 @@ async function sse_add_listener(req:any, res:any) {
 
 async function logger_save(req:any, res:any) {
 
-	Logger.Save(
-		db, 
-		req.body.user_email, 
-		req.body.device, 
-		req.body.browser, 
-		req.body.logs)
+	await Logger.Save(db, req.body)
 
 	res.status(200).send()
 }
@@ -449,23 +462,21 @@ async function htmlfile(req:any, res:any) {
 	res.set('Content-Type', 'text/html; charset=UTF-8');
 	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
-    const viewname = req.params.restofpath || 'home'
-    const loadtype = req.headers.loadtype || 'default'
+    const restofpath = req.params.restofpath ? req.params.restofpath : "home"
 
 	try {
-		if (loadtype === 'default') {
-			returnstr = await HTMLFile.allinone(viewname, STATIC_PREFIX)
-		} else {
-			returnstr = ""
-		}
+		const { returnstr, viewname } = await HTMLFile.HandleViewPath(restofpath, STATIC_PREFIX, VAR_NODE_ENV + "/")
+		res.set('View-Name', viewname)
+		res.status(200).send(returnstr)
 	}
 	catch {
-		returnstr = "Could not load view: " + viewname
+		returnstr = "Could not load view: " + restofpath
 		res.status(400).send(returnstr)
 		return
 	}
 
-    // Compress the HTML content using brotli
+
+	/*
     zlib.brotliCompress(returnstr, {
         params: {
             [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
@@ -475,6 +486,7 @@ async function htmlfile(req:any, res:any) {
         res.set('Content-Encoding', 'br');
         res.status(200).send(result)
     })
+	*/
 }
 
 
@@ -565,7 +577,7 @@ async function startit() {
 
 function validate_request(res:any, req:any) {   return new Promise((promiseres)=> {
 
-	if ( (VAR_NODE_ENV === "dev" && VAR_OFFLINEDATE_DIR) || APPVERSION===0 ) {
+	if ( APPVERSION===0 ) {
 		promiseres(true)
 	}
 
