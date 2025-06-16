@@ -143,30 +143,14 @@ const getlazyload = (path:str, all_lazyloads:any[]) => {
 
 		if (!lazyload.urlmatch || lazyload.type !== "view") continue;
 		
-		const urlPattern = lazyload.urlmatch.replace(/^\^|\$$/g, '');
-		
-		const patternParts = urlPattern.split('/');
-		
-		if (patternParts.length !== pathparts.length) continue;
-		
-		let isMatch = true;
-		
-		for (let i = 0; i < patternParts.length; i++) {
-			const pattern = patternParts[i];
-			const part = pathparts[i];
-			
-			if (pattern.startsWith(':')) {
-				continue;
+		try {
+			const regex = new RegExp(lazyload.urlmatch);
+			if (regex.test(path)) {
+				return lazyload;
 			}
-			
-			if (pattern !== part) {
-				isMatch = false;
-				break;
-			}
-		}
-		
-		if (isMatch) {
-			return lazyload;
+		} catch (error) {
+			// Skip invalid regex patterns
+			continue;
 		}
 	}
 	
