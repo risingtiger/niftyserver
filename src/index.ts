@@ -20,7 +20,7 @@ import { InfluxDB } from "./influxdb.js"
 import SSE from "./sse.js"
 import Push_Subscriptions from "./push_subscriptions.js"
 import FileRequest from "./filerequest.js"
-import HTMLFile from "./htmlfile.js"
+import View from "./view.js"
 import Logger from "./logger.js"
 import Emailing from "./emailing.js"
 
@@ -87,7 +87,8 @@ app.get([
     '/app.webmanifest', 
     '/assets/*file',
     '/sw.js',
-	'/shared_worker.js'
+	'/shared_worker.js',
+	'/v/*mainpath/parts/*partname/*partfile',
 ], assets_general)
 
 
@@ -142,8 +143,7 @@ app.get(['/index.html','/'], (req, res) => {
 
 
 
-app.get('/v/*restofpath', htmlfile)
-app.get('/v/*restofpath/*.js', view_javascript)
+app.get('/v/*restofpath', serveview)
 
 
 
@@ -454,15 +454,9 @@ async function ping(_req:any, res:any) {
 
 
 
-async function view_javascript(req:any, res:any) {
-	const full_path = req.path
-	const fileurl = full_path.replace('/v/', '/assets/')
-	FileRequest.runit(fileurl, res, VAR_NODE_ENV, STATIC_PREFIX)
-}
+async function serveview(req:any, res:any) {
 
-async function htmlfile(req:any, res:any) {
-
-	let returnstr:str = ""
+	let rstr:str = ""
 
 	res.set('Content-Type', 'text/html; charset=UTF-8');
 	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
@@ -470,19 +464,19 @@ async function htmlfile(req:any, res:any) {
     const restofpath = req.params.restofpath ? req.params.restofpath : "home"
 
 	try {
-		const { returnstr, viewname } = await HTMLFile.HandleViewPath(restofpath, STATIC_PREFIX, VAR_NODE_ENV + "/")
+		const { returnstr, viewname } = await View.HandlePath(restofpath, STATIC_PREFIX, VAR_NODE_ENV + "/")
+		rstr = returnstr
 		res.set('View-Name', viewname)
-		res.status(200).send(returnstr)
+		//res.status(200).send(returnstr)
 	}
 	catch {
-		returnstr = "Could not load view: " + restofpath
-		res.status(400).send(returnstr)
+		rstr = "Could not load view: " + restofpath
+		res.status(400).send(rstr)
 		return
 	}
 
 
-	/*
-    zlib.brotliCompress(returnstr, {
+    zlib.brotliCompress(rstr, {
         params: {
             [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
             [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
@@ -491,9 +485,7 @@ async function htmlfile(req:any, res:any) {
         res.set('Content-Encoding', 'br');
         res.status(200).send(result)
     })
-	*/
 }
-
 
 
 

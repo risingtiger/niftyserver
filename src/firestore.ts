@@ -133,7 +133,7 @@ function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|nul
 				return { code:10, data }; 
 			}
 			
-			const existingdata = docsnapshot.data();
+			const existingdata = { id:docsnapshot.id,  ...docsnapshot.data() }
 			
 			if (oldts < existingdata.ts) {   
 				data = { id: docsnapshot.id, ...existingdata };  

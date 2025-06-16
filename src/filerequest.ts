@@ -20,6 +20,8 @@ function runit(fileurl:str, res:any, env:str, static_prefix:str)  {   return new
 	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
 
+	if (fileurl.includes("parts")) debugger
+
     let path = fileurl.replace("/assets/", "");
 
     let absolute_prefix = process.cwd() + "/" + static_prefix + (env === "dev" ? "dev/" : "dist/");
@@ -105,22 +107,14 @@ async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:a
 
     res.set('Content-Type', 'application/javascript; charset=UTF-8');
 
-    if (env === "dev") {
+    if (env === "dev" && jspath.includes("/lazy/")) {
 
-        if (jspath.includes("lazy/") && (jspath.includes("views/") || jspath.includes("components/")) ) {
+        if (jspath.includes("/components/"))  {
+			let jsstr = await fleshitout(absolute_path, path_without_extension, false)
+            res.send(jsstr)
 
-            const htmlpromise = fs.promises.readFile(absolute_path + path_without_extension + ".html", 'utf8')
-            const jspromise = fs.promises.readFile(absolute_path + path_without_extension + ".js", 'utf8')
-
-            const linkcsspath = "/assets/" + path_without_extension + ".css"
-
-            let [htmlstr, jsstr] = await Promise.all([htmlpromise, jspromise])
-
-			const css_replace = jspath.includes("views/") ? `<link rel="stylesheet" href="/assets/main.css"><link rel="stylesheet" href="${linkcsspath}">` : `<link rel="stylesheet" href="${linkcsspath}">`
-
-            jsstr = jsstr.replace("{--html--}", `${htmlstr}`)
-            jsstr = jsstr.replace("{--css--}", css_replace)
-
+		} else if (jspath.includes("/views/") && jspath.includes("/parts/") )  {
+			let jsstr = await fleshitout(absolute_path, path_without_extension, true)
             res.send(jsstr)
 
         } else {
@@ -141,7 +135,27 @@ async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:a
 
         res.sendFile(absolute_path + jspath);
     }
+
+
 }
+
+const fleshitout = (absolute_path:str, path_without_extension:str, includemaincss:boolean = false) => new Promise(async (resolve, _reject) => {
+
+	const htmlpromise = fs.promises.readFile(absolute_path + path_without_extension + ".html", 'utf8')
+	const jspromise = fs.promises.readFile(absolute_path + path_without_extension + ".js", 'utf8')
+
+	const linkcsspath = "/assets/" + path_without_extension + ".css"
+
+	let [htmlstr, jsstr] = await Promise.all([htmlpromise, jspromise])
+
+	let css_replace                 = `<link rel = "stylesheet" href = "${linkcsspath}">`
+	if (includemaincss) css_replace = `<link rel = "stylesheet" href = "/assets/main.css">`
+
+	jsstr = jsstr.replace("{--html--}", `${htmlstr}`)
+	jsstr = jsstr.replace("{--css--}", css_replace)
+
+	resolve(jsstr)
+})
 
 
 

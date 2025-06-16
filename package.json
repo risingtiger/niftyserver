@@ -23,29 +23,19 @@
   "author": "Davis Hammon",
   "license": "Apache-2.0",
   "dependencies": {
-    "@google-cloud/local-auth": "latest",
-    "@google/genai": "latest",
-    "body-parser": "latest",
-    "brotli": "latest",
-    "cors": "latest",
-    "express": "latest",
-    "firebase-admin": "latest",
-    "google-auth-library": "latest",
-    "googleapis": "latest",
-    "jsdom": "latest",
-    "nodemon": "latest"
+    "@google-cloud/local-auth": "3.0.x",
+    "@google/genai": "1.0.x",
+    "body-parser": "2.2.x",
+    "brotli": "1.3.x",
+    "cors": "2.8.x",
+    "express": "5.1.x",
+    "firebase-admin": "13.4.x",
+    "google-auth-library": "9.15.x",
+    "googleapis": "149.0.x",
+    "jsdom": "26.1.x",
+    "nodemon": "3.1.x"
   },
   "devDependencies": {
-    "@types/brotli": "latest",
-    "@types/cors": "latest",
-    "mocha": "^10.3.0",
-    "chai": "^4.3.10",
-    "sinon": "^17.0.1",
-    "sinon-chai": "^3.7.0",
-    "ts-node": "^10.9.2",
-    "@types/mocha": "^10.0.6",
-    "@types/chai": "^4.3.11",
-    "@types/sinon": "^17.0.3",
-    "@types/sinon-chai": "^3.2.12"
+    "@types/brotli": "1.3.x"
   }
 }

@@ -1,0 +1,388 @@
+chip,status,lastupdate,machine_lat,machine_lon,store_lat,store_lon,distance,istoofar,isold,sourcedfrom,errmsg
+0000355,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000165,valid,2025-05-27,45.451162,-122.571922,45.4436937,-122.5774862,0.51,no,no,particle,none
+0000378,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000340,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000101,valid,2025-05-27,28.035411,-80.651667,39.977404,-111.7759179,1694.20,yes,no,particle,none
+0000290,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000384,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000295,valid,2025-05-25,41.71173,-86.182712,0,0,0.00,unknown,no,particle,none
+0000028,valid,2025-05-26,32.988736,-96.830628,35.5469066,-105.9056213,475.20,yes,no,particle,none
+0000266,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000360,valid,2025-05-27,36.266916,-115.210801,0,0,0.00,unknown,no,particle,none
+0000362,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000188,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000286,valid,2025-05-24,38.007546,-121.851833,0,0,0.00,unknown,no,particle,none
+0000282,valid,2025-05-08,37.820923,-121.300171,0,0,0.00,unknown,yes,particle,none
+0000031,valid,2025-05-25,36.292114,-119.34021,36.2962781,-119.3339658,0.39,no,no,particle,none
+0000052,valid,2025-05-25,43.237414,-123.367247,39.977404,-111.7759179,554.98,yes,no,particle,none
+0000213,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000033,valid,2025-05-27,47.741473,-117.402902,47.7413104,-117.3994738,0.14,no,no,particle,none
+0000122,valid,2025-05-27,43.676327,-116.308445,0,0,0.00,unknown,no,particle,none
+0000078,valid,2025-05-27,25.968693,-80.313704,25.9767105,-80.3099072,0.52,no,no,particle,none
+0000075,valid,2025-05-26,27.163014,-80.23907,27.1658235,-80.2297787,0.52,no,no,particle,none
+0000021,valid,2025-05-27,38.775564,-77.502347,35.5469066,-105.9056213,1366.25,yes,no,particle,none
+0000050,valid,2025-05-26,47.256677,-122.525324,47.2564283,-122.5202424,0.21,no,no,particle,none
+0000177,valid,2025-05-26,45.613403,-122.936646,0,0,0.00,unknown,no,particle,none
+0000205,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000212,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000196,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000312,valid,2025-05-27,39.270861,-84.329966,0,0,0.00,unknown,no,particle,none
+0000034,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000083,valid,2025-05-24,36.298201,-119.317042,39.977404,-111.7759179,418.54,yes,no,particle,none
+0000035,valid,2025-05-27,40.492863,-111.974598,0,0,0.00,unknown,no,particle,none
+0000223,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000380,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000301,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000014,valid,2025-05-25,44.086714,-121.306025,44.0855576,-121.304632,0.09,no,no,particle,none
+0000230,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000232,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000041,valid,2025-05-26,29.445788,-98.670575,29.445241,-98.67295,0.13,no,no,particle,none
+0000376,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000042,valid,2025-05-27,33.681709,-117.175125,33.68405,-117.18288,0.41,no,no,particle,none
+0000104,valid,2025-05-26,38.630796,-90.236357,0,0,0.00,unknown,no,particle,none
+0000299,valid,2025-05-27,32.802886,-117.249524,0,0,0.00,unknown,no,particle,none
+0000082,valid,2025-05-22,34.076284,-117.369502,35.5469066,-105.9056213,571.22,yes,no,particle,none
+0000128,valid,2025-05-25,36.812641,-119.885963,36.8110501,-119.8726613,0.65,no,no,particle,none
+0000291,valid,2025-05-27,41.699448,-83.647431,0,0,0.00,unknown,no,particle,none
+0000269,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000308,valid,2025-04-03,28.150201,-81.47162,0,0,0.00,unknown,yes,particle,none
+0000046,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000229,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000330,valid,2025-05-26,29.089428,-82.246864,0,0,0.00,unknown,no,particle,none
+0000304,valid,2025-05-27,30.058658,-81.533706,0,0,0.00,unknown,no,particle,none
+0000359,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000043,valid,2025-05-24,36.196155,-115.158115,0,0,0.00,unknown,no,particle,none
+0000281,valid,2025-05-26,38.003547,-121.283754,0,0,0.00,unknown,no,particle,none
+0000162,valid,2025-05-27,27.358276,-82.611694,32.9116696,-96.9561873,814.51,yes,no,particle,none
+0000317,valid,2025-05-22,40.768112,-111.905746,0,0,0.00,unknown,no,particle,none
+0000357,valid,2025-04-22,39.084824,-84.479084,0,0,0.00,unknown,yes,particle,none
+0000385,valid,2025-05-02,40.768752,-111.911583,0,0,0.00,unknown,yes,particle,none
+0000044,valid,2025-05-27,40.706371,-112.028218,40.713905,-112.0263157,0.46,no,no,particle,none
+0000306,valid,2025-04-27,42.56229,-83.135913,0,0,0.00,unknown,yes,particle,none
+0000169,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000381,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000390,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000038,valid,2025-05-06,39.0469,-77.4903,32.164984,-110.9884109,1675.17,yes,yes,particle,none
+0000204,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000055,valid,2025-05-27,39.903125,-75.062924,0,0,0.00,unknown,no,particle,none
+0000243,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000159,valid,2025-05-26,30.303543,-97.703879,0,0,0.00,unknown,no,particle,none
+0000246,valid,2025-05-26,44.732501,-93.203029,35.383172,-106.1739719,816.31,yes,no,particle,none
+0000030,valid,2025-05-27,40.656758,-111.506714,0,0,0.00,unknown,no,particle,none
+0000374,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000116,valid,2025-05-27,39.920071,-75.189503,0,0,0.00,unknown,no,particle,none
+0000097,valid,2025-05-25,26.368371,-80.199793,35.5469066,-105.9056213,1427.17,yes,no,particle,none
+0000320,valid,2025-05-23,38.633824,-76.915656,0,0,0.00,unknown,no,particle,none
+0000040,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000067,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000315,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000240,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000270,valid,2025-05-26,39.164788,-86.576203,0,0,0.00,unknown,no,particle,none
+0000365,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000061,valid,2025-05-16,40.387676,-111.839903,0,0,0.00,unknown,yes,particle,none
+0000064,valid,2025-05-27,41.920834,-111.819982,0,0,0.00,unknown,no,particle,none
+0000002,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000218,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000080,valid,2025-05-26,26.669067,-81.93781,26.6684445,-81.9344707,0.18,no,no,particle,none
+0000256,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000366,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000347,valid,2025-05-27,40.147359,-82.965003,0,0,0.00,unknown,no,particle,none
+0000292,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000387,valid,2025-05-19,40.768567,-111.911675,0,0,0.00,unknown,yes,particle,none
+0000247,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000011,valid,2025-05-27,39.519354,-119.80896,36.1153519,-115.2410644,297.55,yes,no,particle,none
+0000045,valid,2025-05-27,33.702333,-117.968677,35.5469066,-105.9056213,605.36,yes,no,particle,none
+0000332,valid,2025-05-26,40.768112,-111.905746,0,0,0.00,unknown,no,particle,none
+0000321,valid,2025-05-01,40.768752,-111.911583,0,0,0.00,unknown,yes,particle,none
+0000268,valid,2025-05-09,40.451338,-86.909776,0,0,0.00,unknown,yes,particle,none
+0000344,valid,2025-05-27,36.113279,-115.242894,0,0,0.00,unknown,no,particle,none
+0000020,valid,2025-05-27,33.639529,-112.082137,36.0594672,-95.88718,809.51,yes,no,particle,none
+0000349,valid,2025-05-26,40.245599,-75.247042,0,0,0.00,unknown,no,particle,none
+0000096,valid,2025-05-26,26.167962,-80.129026,26.165955,-80.1368,0.44,no,no,particle,none
+0000113,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000227,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000237,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000220,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000379,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000222,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000208,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000129,valid,2025-05-27,37.129981,-113.612073,0,0,0.00,unknown,no,particle,none
+0000193,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000123,valid,2025-05-27,43.520255,-114.315548,38.7850745,-121.2785516,423.58,yes,no,particle,none
+0000322,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000016,valid,2025-05-25,42.875303,-112.459038,42.8938802,-112.4490472,1.20,no,no,particle,none
+0000288,valid,2025-05-27,42.400504,-83.481133,0,0,0.00,unknown,no,particle,none
+0000329,valid,2025-03-25,40.768706,-111.911606,0,0,0.00,unknown,yes,particle,none
+0000260,valid,2025-05-25,39.8751,-86.149232,0,0,0.00,unknown,no,particle,none
+0000166,valid,2025-05-27,40.050786,-75.058045,0,0,0.00,unknown,no,particle,none
+0000211,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000098,valid,2025-05-27,26.053589,-80.157349,26.0494483,-80.1578223,0.25,no,no,particle,none
+0000277,valid,2025-05-06,45.531811,-122.557843,0,0,0.00,unknown,yes,particle,none
+0000198,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000221,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000285,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000239,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000186,valid,2025-05-25,34.106535,-117.490631,34.1075545,-117.492182,0.10,no,no,particle,none
+0000093,valid,2025-05-26,28.140259,-82.3573,28.1393788,-82.358205,0.07,no,no,particle,none
+0000187,valid,2025-05-27,38.899119,-106.967631,37.7589624,-121.4686488,685.19,yes,no,particle,none
+0000173,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000029,valid,2025-05-26,46.139974,-122.930349,46.1431861,-122.933864,0.24,no,no,particle,none
+0000209,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000081,valid,2025-05-25,33.721241,-116.363132,39.977404,-111.7759179,435.04,yes,no,particle,none
+0000201,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000157,valid,2025-05-25,39.631237,-119.717144,0,0,0.00,unknown,no,particle,none
+0000273,valid,2025-05-25,39.716431,-86.299194,0,0,0.00,unknown,no,particle,none
+0000154,valid,2025-05-27,39.797721,-104.772058,39.782809,-104.7709484,0.90,no,no,particle,none
+0000302,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000132,valid,2025-05-25,33.886185,-84.476582,33.8901802,-84.4766944,0.24,no,no,particle,none
+0000370,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000133,valid,2025-05-27,33.609725,-112.150887,33.6092614,-112.1485637,0.12,no,no,particle,none
+0000189,valid,2025-05-26,38.655847,-121.184126,38.6559776,-121.1746586,0.44,no,no,particle,none
+0000275,valid,2025-05-06,26.321831,-80.150794,0,0,0.00,unknown,yes,particle,none
+0000323,valid,2025-05-27,34.427682,-118.418173,0,0,0.00,unknown,no,particle,none
+0000125,valid,2025-05-26,39.7323,-121.79859,39.7289663,-121.8000883,0.21,no,no,particle,none
+0000199,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000309,valid,2025-05-26,41.512133,-81.439175,0,0,0.00,unknown,no,particle,none
+0000079,valid,2025-05-18,28.548967,-81.202339,35.5469066,-105.9056213,1320.32,yes,yes,particle,none
+0000127,valid,2025-05-07,38.586792,-121.288996,38.5774257,-121.2822384,0.65,no,yes,particle,none
+0000094,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000289,valid,2025-05-26,42.849731,-85.529663,0,0,0.00,unknown,no,particle,none
+0000018,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000111,valid,2025-05-17,45.150731,-122.831157,0,0,0.00,unknown,yes,particle,none
+0000251,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000057,valid,2025-05-26,41.67128,-81.238983,41.6642217,-81.2412163,0.44,no,no,particle,none
+0000130,valid,2025-05-25,35.392825,-119.093542,35.3983716,-119.0905036,0.36,no,no,particle,none
+0000007,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000274,valid,2025-05-06,41.171918,-112.009635,0,0,0.00,unknown,yes,particle,none
+0000008,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000200,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000331,valid,2025-04-29,35.654506,-105.999628,0,0,0.00,unknown,yes,particle,none
+0000242,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000131,valid,2025-05-26,37.333491,-121.911454,35.5469066,-105.9056213,778.99,yes,no,particle,none
+0000280,valid,2025-05-18,39.452459,-75.72003,0,0,0.00,unknown,yes,particle,none
+0000364,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000032,valid,2025-05-25,44.1073,-123.044312,44.0923012,-123.066993,1.33,no,no,particle,none
+0000180,valid,2025-05-25,45.502967,-122.417086,45.4987623,-122.4076233,0.47,no,no,particle,none
+0000179,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000298,valid,2025-05-27,41.60238,-93.74285,0,0,0.00,unknown,no,particle,none
+0000284,valid,2025-05-27,28.187919,-80.672613,0,0,0.00,unknown,no,particle,none
+0000371,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000087,valid,2025-05-18,35.295644,-119.045636,0,0,0.00,unknown,yes,particle,none
+0000325,valid,2025-05-26,32.749443,-96.848908,0,0,0.00,unknown,no,particle,none
+0000184,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000311,valid,2025-05-25,41.465787,-81.958964,0,0,0.00,unknown,no,particle,none
+0000346,valid,2025-05-25,41.120489,-85.13494,0,0,0.00,unknown,no,particle,none
+0000112,valid,2025-05-27,35.654506,-105.999628,0,0,0.00,unknown,no,particle,none
+0000009,valid,2025-05-25,36.992516,-112.974213,0,0,0.00,unknown,no,particle,none
+0000287,valid,2025-05-09,42.463277,-83.38743,0,0,0.00,unknown,yes,particle,none
+0000249,valid,2025-05-26,45.549998,-94.218325,0,0,0.00,unknown,no,particle,none
+0000263,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000202,valid,2025-05-26,32.881145,-97.396469,39.977404,-111.7759179,812.77,yes,no,particle,none
+0000262,valid,2025-05-15,40.768567,-111.911675,0,0,0.00,unknown,yes,particle,none
+0000076,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000136,valid,2025-05-26,43.66308,-116.413839,43.660445,-116.4111053,0.20,no,no,particle,none
+0000047,valid,2025-05-25,40.448446,-109.537327,0,0,0.00,unknown,no,particle,none
+0000091,valid,2025-05-26,26.700429,-80.114513,26.704846,-80.11228,0.29,no,no,particle,none
+0000134,valid,2025-05-27,33.061545,-112.044887,33.064241,-112.0484405,0.24,no,no,particle,none
+0000303,valid,2025-05-14,26.549143,-80.08958,0,0,0.00,unknown,yes,particle,none
+0000373,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000327,valid,2025-04-28,39.70958,-104.819281,0,0,0.00,unknown,yes,particle,none
+0000333,valid,2025-04-07,40.77549,-111.913552,0,0,0.00,unknown,yes,particle,none
+0000258,valid,2025-05-26,33.470581,-84.254028,0,0,0.00,unknown,no,particle,none
+0000135,valid,2025-05-27,40.355282,-111.992843,0,0,0.00,unknown,no,particle,none
+0000119,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000254,valid,2025-05-27,33.921509,-118.122437,0,0,0.00,unknown,no,particle,none
+0000342,valid,2025-04-04,40.768706,-111.911606,0,0,0.00,unknown,yes,particle,none
+0000328,valid,2025-05-22,40.768112,-111.905746,0,0,0.00,unknown,no,particle,none
+0000272,valid,2025-05-26,39.641452,-86.131242,0,0,0.00,unknown,no,particle,none
+0000051,valid,2025-05-25,40.302246,-109.982989,0,0,0.00,unknown,no,particle,none
+0000069,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000241,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000183,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000114,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000343,valid,2025-05-07,38.679177,-121.232889,0,0,0.00,unknown,yes,particle,none
+0000013,valid,2025-05-27,40.726268,-111.89123,40.7243857,-111.8902082,0.12,no,no,particle,none
+0000257,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000326,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000141,valid,2025-05-16,34.024714,-117.765623,34.0263729,-117.7614793,0.23,no,yes,particle,none
+0000092,valid,2025-05-25,26.460539,-80.122102,35.5469066,-105.9056213,1428.16,yes,no,particle,none
+0000022,valid,2025-05-25,27.924799,-82.330119,27.938967,-82.308448,1.43,no,no,particle,none
+0000314,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000207,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000391,valid,2025-04-04,36.977512,-112.968826,0,0,0.00,unknown,yes,particle,none
+0000170,valid,2025-05-27,38.787186,-121.28022,0,0,0.00,unknown,no,particle,none
+0000231,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000206,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000026,valid,2025-05-25,28.679823,-81.472803,28.6750876,-81.4685443,0.36,no,no,particle,none
+0000126,valid,2025-05-25,47.411794,-122.227084,47.4145934,-122.2190847,0.37,no,no,particle,none
+0000185,valid,2025-05-25,42.316612,-122.86002,42.3178532,-122.8608411,0.08,no,no,particle,none
+0000259,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000089,valid,2025-05-25,35.65463,-105.992903,0,0,0.00,unknown,no,particle,none
+0000182,valid,2025-05-27,42.434898,-123.30033,42.4373525,-123.3004635,0.15,no,no,particle,none
+0000293,valid,2025-05-25,42.224983,-85.59286,0,0,0.00,unknown,no,particle,none
+0000137,valid,2025-05-26,45.714681,-111.067666,45.7087202,-111.0711486,0.39,no,no,particle,none
+0000140,valid,2025-05-26,38.353482,-121.979593,38.3464534,-121.9841064,0.47,no,no,particle,none
+0000368,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000236,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000307,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000316,valid,2025-05-14,40.098833,-83.090487,0,0,0.00,unknown,yes,particle,none
+0000351,valid,2025-05-25,39.958618,-75.140747,0,0,0.00,unknown,no,particle,none
+0000337,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000265,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000138,valid,2025-05-25,33.883611,-118.082795,35.5469066,-105.9056213,608.37,yes,no,particle,none
+0000194,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000369,valid,2025-05-07,40.768752,-111.911583,0,0,0.00,unknown,yes,particle,none
+0000121,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000139,valid,2025-05-26,47.658325,-122.675903,47.6576768,-122.6906121,0.60,no,no,particle,none
+0000383,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000234,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000048,valid,2025-05-27,36.044091,-86.721346,35.5469066,-105.9056213,932.57,yes,no,particle,none
+0000377,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000389,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000235,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000005,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000191,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000195,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000088,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000190,valid,2025-05-27,33.86167,-118.15083,33.858783,-118.1519226,0.18,no,no,particle,none
+0000053,valid,2025-05-26,37.332153,-120.466104,39.977404,-111.7759179,436.76,yes,no,particle,none
+0000037,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000224,valid,2025-05-27,37.64734,-122.06471,35.5469066,-105.9056213,787.48,yes,no,particle,none
+0000324,valid,2025-05-25,40.768112,-111.905746,0,0,0.00,unknown,no,particle,none
+0000353,valid,2025-05-02,40.768752,-111.911583,0,0,0.00,unknown,yes,particle,none
+0000261,valid,2025-05-15,30.68472,-97.720543,0,0,0.00,unknown,yes,particle,none
+0000110,valid,2025-05-26,43.610827,-116.197368,0,0,0.00,unknown,no,particle,none
+0000059,valid,2025-05-25,39.0469,-77.4903,0,0,0.00,unknown,no,particle,none
+0000085,valid,2025-04-18,45.709601,-122.546479,0,0,0.00,unknown,yes,particle,none
+0000060,valid,2025-05-25,38.816884,-104.823138,35.5469066,-105.9056213,202.90,yes,no,particle,none
+0000027,valid,2025-05-27,33.740329,-116.22104,33.7395201,-116.2134242,0.38,no,no,particle,none
+0000318,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000117,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000062,valid,2025-03-25,37.681351,-113.083091,0,0,0.00,unknown,yes,particle,none
+0000354,valid,2025-05-25,38.563224,-109.550292,0,0,0.00,unknown,no,particle,none
+0000264,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000310,valid,2025-05-25,26.246873,-80.187705,0,0,0.00,unknown,no,particle,none
+0000142,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000233,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000063,valid,2025-05-27,35.130259,-106.515347,35.1307145,-106.5155657,0.03,no,no,particle,none
+0000143,valid,2025-05-26,39.0469,-77.4903,47.6560499,-117.2733205,1788.97,yes,no,particle,none
+0000145,valid,2025-05-26,39.0469,-77.4903,45.5366676,-122.5361275,2009.51,yes,no,particle,none
+0000012,valid,2025-05-25,38.608521,-121.386841,38.6072498,-121.3807853,0.29,no,no,particle,none
+0000386,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000107,valid,2025-05-25,39.117895,-76.929457,39.977404,-111.7759179,1602.64,yes,no,particle,none
+0000163,valid,2025-05-27,41.753213,-111.846688,41.7565901,-111.8369231,0.48,no,no,particle,none
+0000144,valid,2025-05-26,46.849352,-114.018042,46.8479292,-114.0376453,0.81,no,no,particle,none
+0000219,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000090,valid,2025-05-27,27.313965,-80.400113,27.3136014,-80.4063089,0.33,no,no,particle,none
+0000372,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000217,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000149,valid,2025-05-27,36.485344,-114.484882,0,0,0.00,unknown,no,particle,none
+0000024,valid,2025-05-26,27.961539,-82.46349,27.9605603,-82.461199,0.13,no,no,particle,none
+0000070,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000348,valid,2025-04-09,40.768706,-111.911606,0,0,0.00,unknown,yes,particle,none
+0000345,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000276,valid,2025-05-27,32.518277,-97.351422,0,0,0.00,unknown,no,particle,none
+0000363,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000215,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000086,valid,2025-05-26,33.963415,-118.192921,35.5469066,-105.9056213,612.67,yes,no,particle,none
+0000147,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000339,valid,2025-05-12,41.114988,-112.049318,0,0,0.00,unknown,yes,particle,none
+0000335,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000010,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000102,valid,2025-05-25,27.819166,-82.730943,39.977404,-111.7759179,1609.83,yes,no,particle,none
+0000003,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000203,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000245,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000103,valid,2025-05-25,40.621297,-111.908207,39.977404,-111.7759179,39.10,yes,no,particle,none
+0000058,valid,2025-05-26,36.040199,-114.984221,0,0,0.00,unknown,no,particle,none
+0000192,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000255,valid,2025-05-26,41.131952,-111.765757,0,0,0.00,unknown,no,particle,none
+0000296,valid,2025-05-24,42.321655,-83.460327,0,0,0.00,unknown,no,particle,none
+0000084,valid,2025-05-27,37.219556,-113.275927,0,0,0.00,unknown,no,particle,none
+0000352,valid,2025-03-19,40.765919,-111.921747,0,0,0.00,unknown,yes,particle,none
+0000167,valid,2025-05-25,39.0469,-77.4903,0,0,0.00,unknown,no,particle,none
+0000150,valid,2025-05-27,33.6745,-112.336672,0,0,0.00,unknown,no,particle,none
+0000334,valid,2025-05-15,40.768567,-111.911675,0,0,0.00,unknown,yes,particle,none
+0000095,valid,2025-05-25,46.260251,-119.264209,32.8430421,-97.2350318,1291.07,yes,no,particle,none
+0000099,valid,2025-05-26,25.685456,-80.398577,25.6843653,-80.3995261,0.08,no,no,particle,none
+0000305,valid,2025-05-24,41.557282,-90.543866,0,0,0.00,unknown,no,particle,none
+0000015,valid,2025-05-27,45.645142,-122.598755,45.6389484,-122.5970487,0.38,no,no,particle,none
+0000118,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000197,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000382,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000108,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000049,valid,2025-05-25,36.992516,-112.974213,36.9721766,-112.974999,1.22,no,no,particle,none
+0000338,valid,2025-05-25,36.095596,-115.101735,0,0,0.00,unknown,no,particle,none
+0000341,valid,2025-04-04,40.768706,-111.911606,0,0,0.00,unknown,yes,particle,none
+0000056,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000226,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000244,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000210,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000019,valid,2025-05-25,40.399383,-86.836322,35.294967,-119.0780861,1548.94,yes,no,particle,none
+0000152,valid,2025-05-24,36.728956,-119.718602,36.7336476,-119.7186644,0.28,no,no,particle,none
+0000225,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000175,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000278,valid,2025-05-25,37.035112,-113.061136,0,0,0.00,unknown,no,particle,none
+0000115,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000178,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000151,valid,2025-05-27,42.65862,-111.613075,0,0,0.00,unknown,no,particle,none
+0000300,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000073,valid,2025-05-26,28.538968,-81.334134,28.550511,-81.3511994,1.14,no,no,particle,none
+0000074,valid,2025-05-26,26.528231,-80.136928,26.5304984,-80.1471021,0.56,no,no,particle,none
+0000214,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000158,valid,2025-05-25,33.940212,-117.248368,33.942691,-117.2425634,0.32,no,no,particle,none
+0000106,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000216,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000153,valid,2025-05-26,32.701161,-97.023741,32.7080075,-97.0161661,0.56,no,no,particle,none
+0000124,valid,2025-05-25,33.790002,-117.959296,33.787586,-117.961395,0.18,no,no,particle,none
+0000071,valid,2025-05-26,28.457887,-81.475152,28.4545303,-81.4764143,0.21,no,no,particle,none
+0000054,valid,2025-05-26,36.283875,-115.107491,35.5469066,-105.9056213,449.14,yes,no,particle,none
+0000172,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000066,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000319,valid,2025-05-27,38.776817,-90.703746,0,0,0.00,unknown,no,particle,none
+0000017,valid,2025-05-25,47.447568,-120.3238,47.4417707,-120.3282025,0.39,no,no,particle,none
+0000160,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000336,valid,2025-04-21,39.821803,-75.179654,0,0,0.00,unknown,yes,particle,none
+0000253,valid,2025-05-23,41.16833,-104.805128,0,0,0.00,unknown,no,particle,none
+0000006,valid,2025-05-27,33.218322,-111.568272,0,0,0.00,unknown,no,particle,none
+0000361,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000174,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000248,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000023,valid,2025-05-25,28.926761,-82.005995,35.5469066,-105.9056213,1272.45,yes,no,particle,none
+0000004,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000155,valid,2025-05-27,34.05695,-83.992484,34.04992,-83.9919486,0.42,no,no,particle,none
+0000375,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000120,valid,2025-05-27,46.731871,-117.019577,0,0,0.00,unknown,no,particle,none
+0000161,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000105,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000356,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000039,valid,2025-05-27,32.836488,-96.750252,32.8370672,-96.7524689,0.12,no,no,particle,none
+0000156,valid,2025-05-27,38.000935,-121.314312,35.5469066,-105.9056213,754.08,yes,no,particle,none
+0000072,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000068,valid,2025-05-27,39.0469,-77.4903,28.04558,-82.581445,707.11,yes,no,particle,none
+0000001,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000109,valid,2025-05-25,25.743638,-80.240668,0,0,0.00,unknown,no,particle,none
+0000388,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000168,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000250,valid,2025-05-27,36,-117,44.8579105,-93.3070186,1199.52,yes,no,,none
+0000271,valid,2025-05-26,39.414604,-87.416177,0,0,0.00,unknown,no,particle,none
+0000100,valid,2025-05-26,25.47819,-80.439895,25.4805361,-80.4396929,0.14,no,no,particle,none
+0000238,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000077,valid,2025-05-25,26.444876,-81.824153,26.4485905,-81.8186435,0.37,no,no,particle,none
+0000350,valid,2025-05-20,40.768112,-111.905746,0,0,0.00,unknown,yes,particle,none
+0000283,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000228,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000279,valid,2025-05-26,27.921233,-82.76107,0,0,0.00,unknown,no,particle,none
+0000358,valid,2025-05-27,37.993027,-87.470113,0,0,0.00,unknown,no,particle,none
+0000181,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000065,valid,2025-05-15,37.1785,-113.293177,0,0,0.00,unknown,yes,particle,none
+0000252,valid,2025-05-25,33.820756,-116.488598,0,0,0.00,unknown,no,particle,none
+0000267,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000164,valid,2025-05-27,45.229256,-123.174884,45.2307993,-123.1721392,0.15,no,no,particle,none
+0000025,valid,2025-05-26,26.556574,-81.897333,35.5469066,-105.9056213,1342.10,yes,no,particle,none
+0000297,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000171,no_store_gps,unknown,0,0,0,0,0.00,no,unknown,none,Error: Unable to retrieve GPS data and database is empty
+0000367,valid,2025-05-23,40.770985,-111.911537,0,0,0.00,unknown,no,particle,none
+0000313,valid,2025-05-24,40.861193,-81.427918,0,0,0.00,unknown,no,particle,none
+0000294,valid,2025-05-17,42.720874,-84.49479,0,0,0.00,unknown,yes,particle,none

@@ -4,18 +4,24 @@ import { str } from './defs.js'
 
 
 
-const Save = (db:any, user_email:str, device:str, browser:str, logs_string:str) => new Promise(async (resolve, _reject) => { 
+const Save = (db:any, log_str:str) => new Promise(async (resolve, _reject) => { 
 
-	const logs = logs_string.split("--")
+	debugger
+
+	const split = log_str.split("\n")
+	const email = split[0]
+	const device = split[1]
+	const browser = split[2]
+	const logs = split.slice(3)
 
 	const collection = db.collection("logs")
-
-	let batch = db.batch()
+	let batch        = db.batch()
 
 	for (let i = 0; i < logs.length; i++) {
 		const log = logs[i].split(",")
+
 		const doc = { 
-			user_email,
+			user_email: email,
 			device,
 			browser,
 			type: Number(log[0]),
@@ -24,7 +30,8 @@ const Save = (db:any, user_email:str, device:str, browser:str, logs_string:str) 
 			ts: Number(log[3]),
 		}
 
-		batch.set(collection.doc(), doc)
+		const doc_ref = collection.doc()
+		batch.set(doc_ref, doc)
 	}
 
 	await batch.commit().catch((er:any)=> console.error(er))
