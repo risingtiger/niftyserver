@@ -463,7 +463,8 @@ async function serveview(req:any, res:any) {
 
     const restofpath = req.params.restofpath ? req.params.restofpath : "home"
 
-	// i need a variable to hold the href path, for example, if the href is http://www.example.com/v/machines/12345, then the path would be "machines/12345" AI!
+	// Variable to hold the href path (e.g., "machines/12345" from "http://www.example.com/v/machines/12345")
+	const href_path = restofpath
 
 	try {
 		const { returnstr, viewname } = await View.HandlePath(restofpath, STATIC_PREFIX, VAR_NODE_ENV + "/")
