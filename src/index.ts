@@ -88,7 +88,6 @@ app.get([
     '/assets/*file',
     '/sw.js',
 	'/shared_worker.js',
-	'/v/*mainpath/parts/*partname/*partfile',
 ], assets_general)
 
 
@@ -143,6 +142,7 @@ app.get(['/index.html','/'], (req, res) => {
 
 
 
+//app.get('/v/*mainpath/parts/*partname/*partfile', assets_general)
 app.get('/v/*restofpath', serveview)
 
 
@@ -462,6 +462,8 @@ async function serveview(req:any, res:any) {
 	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
     const restofpath = req.params.restofpath ? req.params.restofpath : "home"
+
+	// i need a variable to hold the href path, for example, if the href is http://www.example.com/v/machines/12345, then the path would be "machines/12345" AI!
 
 	try {
 		const { returnstr, viewname } = await View.HandlePath(restofpath, STATIC_PREFIX, VAR_NODE_ENV + "/")
