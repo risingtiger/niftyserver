@@ -2,6 +2,7 @@
 
 import { str } from './defs.js'
 import fs from "fs";
+import path from 'path';
 
 
 const BASEPATH = process.cwd() + '/'
@@ -111,8 +112,26 @@ const handle_path__view_dev = (view_base_path:str, static_prefix:str) => new Pro
 	promises.push(fs.promises.readFile(p + ".html", 'utf8'))
 	const r = await Promise.all(promises)
 
+	let parts_imports_str = "";
+	try {
+		const view_dir_relative_path = path.dirname(view_base_path);
+		const parts_dir_relative_path = path.join(view_dir_relative_path, "parts");
+		const parts_dir_fs_path = path.join(BASEPATH, static_prefix, "dev", parts_dir_relative_path);
+
+		const dir_entries = await fs.promises.readdir(parts_dir_fs_path, { withFileTypes: true });
+		for (const dir_entry of dir_entries) {
+			if (dir_entry.isDirectory()) {
+				const part_name = dir_entry.name;
+				const part_module_web_path = `/assets/${parts_dir_relative_path}/${part_name}/${part_name}.js`;
+				parts_imports_str += `import '${part_module_web_path}';\n`;
+			}
+		}
+	} catch (error) {
+		// Parts directory may not exist or other error, ignore.
+	}
 
 	let jsstr = r[0].replace("{--html--}", `${r[1]}`)
+	jsstr     = jsstr.replace("//{--parts--}", parts_imports_str);
 	jsstr     = jsstr.replace("{--css--}", `<link rel="stylesheet" href="/assets/main.css"></link><link rel="stylesheet" href="/assets/${view_base_path}.css"></link>`)
 	const script_jsstr = `<script type="module">${jsstr}</script>`
 
