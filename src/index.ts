@@ -1,4 +1,5 @@
 import { str, ServerInstanceT, ServerMainsT } from "./defs.js"
+import fs from "fs";
 
 import express from "express";
 
@@ -38,6 +39,8 @@ const APPVERSION=0;
 const VAR_NODE_ENV        = process.env.NODE_ENV || 'dev';
 const VAR_PORT            = process.env["NIFTY_INSTANCE_"+INSTANCE.INSTANCEID.toUpperCase()+"_PORT"] || process.env.PORT;
 const VAR_OFFLINEDATE_DIR = VAR_NODE_ENV === "dev" && process.env.NIFTY_OFFLINEDATA_DIR
+
+let   _json_configs = {}
 
 const app = express()
 
@@ -462,18 +465,16 @@ async function serveview(req:any, res:any) {
 	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
     const restofpath = req.params.restofpath ? req.params.restofpath : "home"
-
-	// Variable to hold the href path (e.g., "machines/12345" from "http://www.example.com/v/machines/12345")
-	const href_path = restofpath
+	const path_str = restofpath.join("/")
 
 	try {
-		const { returnstr, viewname } = await View.HandlePath(restofpath, STATIC_PREFIX, VAR_NODE_ENV + "/")
+		const { returnstr, viewname } = await View.HandlePath(path_str, STATIC_PREFIX, VAR_NODE_ENV + "/", _json_configs)
 		rstr = returnstr
 		res.set('View-Name', viewname)
 		//res.status(200).send(returnstr)
 	}
 	catch {
-		rstr = "Could not load view: " + restofpath
+		rstr = "Could not load view: " + path_str
 		res.status(400).send(rstr)
 		return
 	}
@@ -507,6 +508,11 @@ async function serveview(req:any, res:any) {
 
 
 async function init() { return new Promise(async (res, _rej)=> {
+
+	const jsonconfigcontents = fs.readFileSync(process.cwd() + "/" + STATIC_PREFIX + VAR_NODE_ENV + "/main.json", 'utf8')
+	_json_configs = JSON.parse(jsonconfigcontents)
+
+	parse_json_configs(_json_configs)
 
     if ( (VAR_NODE_ENV === "dev" || VAR_NODE_ENV === "dist") && !VAR_OFFLINEDATE_DIR)  {
 
@@ -633,6 +639,13 @@ async function bootstrapit() {
     INSTANCE.Set_Routes()
 
     startit()
+}
+
+
+
+
+function parse_json_configs(json_configs:any) {
+
 }
 
 
