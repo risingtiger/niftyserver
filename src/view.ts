@@ -9,7 +9,6 @@ const BASEPATH = process.cwd() + '/'
 
 
 const HandlePath = (viewpath:str, static_prefix:str, nodeenv:str) => new Promise<{returnstr:string,viewname:str}>(async (resolve, reject) => {
-
 	debugger
 
 	const promises:Promise<string>[] = []
@@ -31,7 +30,7 @@ const HandlePath = (viewpath:str, static_prefix:str, nodeenv:str) => new Promise
 	let   view_base_path		   = getview_base_path(this_lazyload)
 
 	let script_jsstr = ""
-	if		(nodeenv === "dev/") { script_jsstr = await handle_path__view_dev(view_base_path, static_prefix); }
+	if		(nodeenv === "dev/") { script_jsstr =  await handle_path__view_dev(view_base_path, static_prefix); }
 	else if (nodeenv === "dist/") { script_jsstr = await handle_path__view_dist(view_base_path, static_prefix); }
 
 
@@ -104,16 +103,17 @@ const HandlePath_original = (pathparts:str[], static_prefix:str, nodeenv:str) =>
 
 
 
-const handle_path__view_dev = (view_base_path:str, static_prefix:str) => new Promise<string>(async (resolve, reject) => {
+const handle_path__view_dev = (view_base_path:str, static_prefix:str) => new Promise<string>(async (resolve, _reject) => {
 
 	const promises:Promise<any>[] = []
-	const p = BASEPATH + static_prefix + "dev" + view_base_path
+	const p = BASEPATH + static_prefix + "dev/" + view_base_path
 	promises.push(fs.promises.readFile(p + ".js", 'utf8'))
 	promises.push(fs.promises.readFile(p + ".html", 'utf8'))
 	const r = await Promise.all(promises)
 
+
 	let jsstr = r[0].replace("{--html--}", `${r[1]}`)
-	jsstr     = jsstr.replace("{--css--}", `<link rel="stylesheet" href="/assets/${view_base_path}.css"></link>`)
+	jsstr     = jsstr.replace("{--css--}", `<link rel="stylesheet" href="/assets/main.css"></link><link rel="stylesheet" href="/assets/${view_base_path}.css"></link>`)
 	const script_jsstr = `<script type="module">${jsstr}</script>`
 
 	resolve(script_jsstr)	
@@ -122,7 +122,7 @@ const handle_path__view_dev = (view_base_path:str, static_prefix:str) => new Pro
 
 
 
-const handle_path__view_dist = (view_base_path:str, static_prefix:str) => new Promise<string>(async (resolve, reject) => {
+const handle_path__view_dist = (view_base_path:str, static_prefix:str) => new Promise<string>(async (resolve, _reject) => {
 
 	const promises:Promise<any>[] = []
 	const p = BASEPATH + static_prefix + "dist" + view_base_path
@@ -141,7 +141,7 @@ const getlazyload = (path:str, all_lazyloads:any[]) => {
 
 	for (const lazyload of all_lazyloads) {
 
-		if (!lazyload.urlmatch || lazyload.type !== "view") continue;
+		if (lazyload.type !== "view") continue;
 		
 		try {
 			const regex = new RegExp(lazyload.urlmatch);
