@@ -645,7 +645,22 @@ async function bootstrapit() {
 
 
 function parse_json_configs(json_configs:any) {
-
+    if (!json_configs.lazyloads) return;
+    
+    json_configs.lazyloads.forEach((lazyload:any) => {
+        if (!lazyload.urlmatch) return;
+        
+        let regex_pattern = lazyload.urlmatch;
+        
+        // Convert URL parameters like :id to regex pattern
+        // Look for patterns between forward slashes that contain colons
+        regex_pattern = regex_pattern.replace(/\/:[^\/]+/g, (match:str) => {
+            // Remove the leading slash and colon, replace with regex pattern
+            return '/[a-zA-Z0-9_]+';
+        });
+        
+        lazyload.urlmatch_regex = new RegExp(regex_pattern);
+    });
 }
 
 
