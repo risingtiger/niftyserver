@@ -15,12 +15,10 @@ import * as path_util from "path";
 
 
 
-function runit(fileurl:str, res:any, env:str, static_prefix:str)  {   return new Promise(async (resolve, _reject) => {
+function runit(fileurl:str, res:any, env:str, static_prefix:str, nocache:boolean = true)  {   return new Promise(async (resolve, _reject) => {
 
-	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
-
-
-	if (fileurl.includes("parts")) debugger
+	if (nocache)
+		res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
     let path = fileurl.replace("/assets/", "");
 
@@ -101,27 +99,51 @@ function runit(fileurl:str, res:any, env:str, static_prefix:str)  {   return new
 
 
 
+const fleshitout = (absolute_path:str, path_without_extension:str, includemaincss:boolean = false) => new Promise(async (resolve, _reject) => {
+
+	const htmlpromise = fs.promises.readFile(absolute_path + path_without_extension + ".html", 'utf8')
+	const jspromise = fs.promises.readFile(absolute_path + path_without_extension + ".js", 'utf8')
+
+	const linkcsspath = "/assets/" + path_without_extension + ".css"
+
+	let [htmlstr, jsstr] = await Promise.all([htmlpromise, jspromise])
+
+	let css_replace                 = `<link rel = "stylesheet" href = "${linkcsspath}">`
+	if (includemaincss) css_replace += `<link rel = "stylesheet" href = "/assets/main.css">`
+
+	jsstr = jsstr.replace("{--html--}", `${htmlstr}`)
+	jsstr = jsstr.replace("{--css--}", css_replace)
+
+	resolve(jsstr)
+})
+
+
+
+
 async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:any) {
 
     const path_without_extension = jspath.substring(0, jspath.length - jsextension.length)
 
     res.set('Content-Type', 'application/javascript; charset=UTF-8');
 
-    if (env === "dev" && jspath.includes("/lazy/")) {
+    if (env === "dev") {
 
-        if (jspath.includes("/components/"))  {
-			let jsstr = await fleshitout(absolute_path, path_without_extension, false)
-            res.send(jsstr)
+		if (jspath.includes("lazy/")) {
 
-		} else if (jspath.includes("/views/") && jspath.includes("/parts/") )  {
-			let jsstr = await fleshitout(absolute_path, path_without_extension, true)
-            res.send(jsstr)
+			if (jspath.includes("/components/"))  {
+				let jsstr = await fleshitout(absolute_path, path_without_extension, false)
+				res.send(jsstr)
 
-        } else {
-            res.sendFile(absolute_path + jspath);
-        }
+			} else if (jspath.includes("/views/") && jspath.includes("/parts/") )  {
+				let jsstr = await fleshitout(absolute_path, path_without_extension, true)
+				res.send(jsstr)
+			}
 
-    } else if (env === 'dist' || env === 'gcloud') {   
+		} else {
+			res.sendFile(absolute_path + jspath);
+		}
+
+	} else if (env === 'dist' || env === 'gcloud') {   
 
         let is_br_file = await fs.promises.access(absolute_path + path_without_extension + `${jsextension}.br`).then(()=> true).catch(()=> false)
 
@@ -134,28 +156,9 @@ async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:a
         }
 
         res.sendFile(absolute_path + jspath);
-    }
-
-
+	}
 }
 
-const fleshitout = (absolute_path:str, path_without_extension:str, includemaincss:boolean = false) => new Promise(async (resolve, _reject) => {
-
-	const htmlpromise = fs.promises.readFile(absolute_path + path_without_extension + ".html", 'utf8')
-	const jspromise = fs.promises.readFile(absolute_path + path_without_extension + ".js", 'utf8')
-
-	const linkcsspath = "/assets/" + path_without_extension + ".css"
-
-	let [htmlstr, jsstr] = await Promise.all([htmlpromise, jspromise])
-
-	let css_replace                 = `<link rel = "stylesheet" href = "${linkcsspath}">`
-	if (includemaincss) css_replace = `<link rel = "stylesheet" href = "/assets/main.css">`
-
-	jsstr = jsstr.replace("{--html--}", `${htmlstr}`)
-	jsstr = jsstr.replace("{--css--}", css_replace)
-
-	resolve(jsstr)
-})
 
 
 

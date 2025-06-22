@@ -1,6 +1,6 @@
 type str = string; type int = number; type num = number; type bool = boolean;
 
-import { SSETriggersE, GenericRowT } from "./defs.js"
+import { GenericRowT } from "./defs.js"
 
 
 
@@ -101,7 +101,7 @@ function Add(db:any, sse:any, path:str, data:{[key:string]:any}, sse_id:str|null
     if (r === null) { res(null); return; }
     
     // Use the original newdoc with id for the event
-    sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_ADD, { path, data }, { exclude:[ sse_id ] });
+    sse.TriggerEvent(1, { path, data }, { exclude:[ sse_id ] });
 
     res(1)
 })}
@@ -174,7 +174,7 @@ function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|nul
 				}
 			}
 			
-			sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_PATCH, { path, data: merged_data }, { exclude:[ sse_id ] });
+			sse.TriggerEvent(2, { path, data: merged_data }, { exclude:[ sse_id ] });
 		}
 
 		res(r);
@@ -217,7 +217,7 @@ function Delete(db:any, sse:any, path:str, oldts:num, ts:num, sse_id:str|null) {
 		});
 
 		if (r.code === 1) {
-			sse.TriggerEvent(SSETriggersE.FIRESTORE_DOC_DELETE, { path, ts }, { exclude:[ sse_id ] });
+			sse.TriggerEvent(3, { path, ts }, { exclude:[ sse_id ] });
 		}
 
 		res(r);
@@ -351,7 +351,7 @@ const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_i
 
 		await batch.commit()
 
-		sse.TriggerEvent(SSETriggersE.FIRESTORE_COLLECTION, { paths:all_collections }, { exclude:[ sse_id ] });
+		sse.TriggerEvent(4, { paths:all_collections }, { exclude:[ sse_id ] });
 
 		res(true)
 	}

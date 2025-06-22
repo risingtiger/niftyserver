@@ -3,7 +3,8 @@ export type str = string; export type num = number; export type bool = boolean;
 
 export type GenericRowT = { [key:string]: any }
 
-export const enum SSETriggersE { FIRESTORE, FIRESTORE_DOC_ADD, FIRESTORE_DOC_PATCH, FIRESTORE_DOC_DELETE, FIRESTORE_COLLECTION, CUSTOM }
+//export const enum SSETriggersE { FIRESTORE, FIRESTORE_DOC_ADD, FIRESTORE_DOC_PATCH, FIRESTORE_DOC_DELETE, FIRESTORE_COLLECTION, CUSTOM }
+// ssetriggers are 0:FIRESTORE, 1: FIRESTORE_DOC_ADD, 2: FIRESTORE_DOC_PATCH, 3: FIRESTORE_DOC_DELETE, 4: FIRESTORE_COLLECTION, 5: CUSTOM
 
 export type ServerMainsT = {
 	app:any, 

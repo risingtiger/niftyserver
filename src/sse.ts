@@ -1,4 +1,4 @@
-import { SSETriggersE, str  } from './defs.js'
+import { str  } from './defs.js'
 
 
 
@@ -7,7 +7,7 @@ import { SSETriggersE, str  } from './defs.js'
 
 type ListenerT = {
     id:str,
-    cb:(trigger:SSETriggersE, obj:any)=>void,
+    cb:(trigger:number, obj:any)=>void,
 	endit:()=>void
 	checkit:()=>void
 }
@@ -35,7 +35,7 @@ function Add_Listener(req:any, res:any) {
 
     listeners.set(id, {
         id, 
-        cb: (trigger:SSETriggersE, data:any)=> {
+        cb: (trigger:number, data:any)=> {
             res.write(`event: a_${trigger}\n`)
             res.write(`data: ${JSON.stringify(data)}\n`)
             res.write('\n')
@@ -76,7 +76,7 @@ function Add_Listener(req:any, res:any) {
 
 
 
-function TriggerEvent(eventname:SSETriggersE, data:any, opts:{exclude?:str[]}={}) {
+function TriggerEvent(eventname:number, data:any, opts:{exclude?:str[]}={}) {
     listeners.forEach(l => {
         if (opts.exclude && opts.exclude.includes(l.id)) return;
 		l.cb(eventname, data)
@@ -86,7 +86,7 @@ function TriggerEvent(eventname:SSETriggersE, data:any, opts:{exclude?:str[]}={}
 
 
 
-function TriggerEventOne(eventname:SSETriggersE, sse_id:str, data:any) : boolean {
+function TriggerEventOne(eventname:number, sse_id:str, data:any) : boolean {
 	const listener = listeners.get(sse_id)
 	if (!listener) return false
 

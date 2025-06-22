@@ -159,7 +159,8 @@ app.get('/v/*restofpath', serveview)
 
 async function assets_general(req:any, res:any) {
 	const fileurl = req.url
-    FileRequest.runit(fileurl, res, VAR_NODE_ENV, STATIC_PREFIX);
+	const nocache = !req.url.includes("shared_worker.js")
+    FileRequest.runit(fileurl, res, VAR_NODE_ENV, STATIC_PREFIX, nocache);
 }
 
 
@@ -645,20 +646,16 @@ async function bootstrapit() {
 
 
 function parse_json_configs(json_configs:any) {
-    if (!json_configs.lazyloads) return;
     
-    json_configs.lazyloads.forEach((lazyload:any) => {
+    [...json_configs.MAIN.LAZYLOADS, ...json_configs.INSTANCE.LAZYLOADS].forEach((lazyload:any) => {
         if (!lazyload.urlmatch) return;
-        
+
         let regex_pattern = lazyload.urlmatch;
-        
-        // Convert URL parameters like :id to regex pattern
-        // Look for patterns between forward slashes that contain colons
-        regex_pattern = regex_pattern.replace(/\/:[^\/]+/g, (match:str) => {
-            // Remove the leading slash and colon, replace with regex pattern
+
+        regex_pattern = regex_pattern.replace(/\/:[a-z0-9A-Z_]+/g, (match:str) => {
             return '/[a-zA-Z0-9_]+';
         });
-        
+
         lazyload.urlmatch_regex = new RegExp(regex_pattern);
     });
 }

@@ -2,6 +2,7 @@
 
 import { str } from './defs.js'
 import fs from "fs";
+import fsp from "fs/promises";
 import path from 'path';
 
 
@@ -9,25 +10,28 @@ const BASEPATH = process.cwd() + '/'
 
 
 
-const HandlePath = (viewpath:str, static_prefix:str, nodeenv:str) => new Promise<{returnstr:string,viewname:str}>(async (resolve, reject) => {
-	debugger
+const HandlePath = (viewpath:str, static_prefix:str, nodeenv:str, json_configs:any) => new Promise<{returnstr:string,viewname:str}>(async (resolve, reject) => {
 
 	const promises:Promise<string>[] = []
 
 	let r = {} as any
 
 	promises.push(fs.promises.readFile(BASEPATH + static_prefix + nodeenv + "index.html", 'utf8'))
-	promises.push(fs.promises.readFile(BASEPATH + static_prefix + nodeenv + "main.json", 'utf8'))
 
 	try   { r = await Promise.all(promises) }
 	catch { reject(); return; }
 	
 	const indexhtml                = r[0]
-	const json                     = JSON.parse(r[1])
 
-	const all_lazyloads            = [...json.MAIN.LAZYLOADS, ...json.INSTANCE.LAZYLOADS]
+	const all_lazyloads            = [...json_configs.MAIN.LAZYLOADS, ...json_configs.INSTANCE.LAZYLOADS]
 
 	let   this_lazyload            = getlazyload(viewpath, all_lazyloads)
+
+	if (!this_lazyload) {
+		reject(`Lazyload not found for path: ${viewpath}`);
+		return;
+	}
+
 	let   view_base_path		   = getview_base_path(this_lazyload)
 
 	let script_jsstr = ""
@@ -59,7 +63,6 @@ const HandlePath = (viewpath:str, static_prefix:str, nodeenv:str) => new Promise
 /*
 const HandlePath_original = (pathparts:str[], static_prefix:str, nodeenv:str) => new Promise<{returnstr:string,viewname:str}>(async (resolve, reject) => {
 
-	debugger
 	const promises:Promise<string>[] = []
 
 	let r = {} as any
@@ -112,13 +115,14 @@ const handle_path__view_dev = (view_base_path:str, static_prefix:str) => new Pro
 	promises.push(fs.promises.readFile(p + ".html", 'utf8'))
 	const r = await Promise.all(promises)
 
+	/* we import all parts of the view here. We only do this in dev, since we want to see the separate files in  etc. In dist build process its bundled into the main view file.  */
 	let parts_imports_str = "";
-	try {
-		const view_dir_relative_path = path.dirname(view_base_path);
-		const parts_dir_relative_path = path.join(view_dir_relative_path, "parts");
-		const parts_dir_fs_path = path.join(BASEPATH, static_prefix, "dev", parts_dir_relative_path);
+	const view_dir_relative_path = path.dirname(view_base_path);
+	const parts_dir_relative_path = path.join(view_dir_relative_path, "parts");
+	const parts_dir_fs_path = path.join(BASEPATH, static_prefix + "dev", parts_dir_relative_path);
 
-		const dir_entries = await fs.promises.readdir(parts_dir_fs_path, { withFileTypes: true });
+	if (await fsp.stat(parts_dir_fs_path).catch(() => false)) {
+		const dir_entries = await fsp.readdir(parts_dir_fs_path, { withFileTypes: true });
 		for (const dir_entry of dir_entries) {
 			if (dir_entry.isDirectory()) {
 				const part_name = dir_entry.name;
@@ -126,12 +130,9 @@ const handle_path__view_dev = (view_base_path:str, static_prefix:str) => new Pro
 				parts_imports_str += `import '${part_module_web_path}';\n`;
 			}
 		}
-	} catch (error) {
-		// Parts directory may not exist or other error, ignore.
 	}
 
-	let jsstr = r[0].replace("{--html--}", `${r[1]}`)
-	jsstr     = jsstr.replace("//{--parts--}", parts_imports_str);
+	let jsstr = parts_imports_str + "\n\n" + r[0].replace("{--html--}", `${r[1]}`)
 	jsstr     = jsstr.replace("{--css--}", `<link rel="stylesheet" href="/assets/main.css"></link><link rel="stylesheet" href="/assets/${view_base_path}.css"></link>`)
 	const script_jsstr = `<script type="module">${jsstr}</script>`
 
@@ -144,7 +145,7 @@ const handle_path__view_dev = (view_base_path:str, static_prefix:str) => new Pro
 const handle_path__view_dist = (view_base_path:str, static_prefix:str) => new Promise<string>(async (resolve, _reject) => {
 
 	const promises:Promise<any>[] = []
-	const p = BASEPATH + static_prefix + "dist" + view_base_path
+	const p = BASEPATH + static_prefix + "dist/" + view_base_path
 	promises.push(fs.promises.readFile(p + ".js", 'utf8'))
 	const r = await Promise.all(promises)
 
@@ -162,52 +163,7 @@ const getlazyload = (path:str, all_lazyloads:any[]) => {
 
 		if (lazyload.type !== "view") continue;
 		
-		try {
-			const regex = new RegExp(lazyload.urlmatch);
-			if (regex.test(path)) {
-				return lazyload;
-			}
-		} catch (error) {
-			// Skip invalid regex patterns
-			continue;
-		}
-	}
-	
-	return null;
-}
-
-
-
-
-const getlazyload__old = (path:str, all_lazyloads:any[]) => {
-
-	for (const lazyload of all_lazyloads) {
-
-		if (!lazyload.urlmatch || lazyload.type !== "view") continue;
-		
-		const urlPattern = lazyload.urlmatch.replace(/^\^|\$$/g, '');
-		
-		const patternParts = urlPattern.split('/');
-		
-		if (patternParts.length !== pathparts.length) continue;
-		
-		let isMatch = true;
-		
-		for (let i = 0; i < patternParts.length; i++) {
-			const pattern = patternParts[i];
-			const part = pathparts[i];
-			
-			if (pattern.startsWith(':')) {
-				continue;
-			}
-			
-			if (pattern !== part) {
-				isMatch = false;
-				break;
-			}
-		}
-		
-		if (isMatch) {
+		if (lazyload.urlmatch_regex.test(path)) {
 			return lazyload;
 		}
 	}

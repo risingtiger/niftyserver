@@ -6,7 +6,6 @@ import { str } from './defs.js'
 
 const Save = (db:any, log_str:str) => new Promise(async (resolve, _reject) => { 
 
-	debugger
 
 	const split = log_str.split("\n")
 	const email = split[0]
