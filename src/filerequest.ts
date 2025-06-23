@@ -202,13 +202,11 @@ const fleshitout = (absolute_path:str, path_without_extension:str, includemaincs
 
 const get_view_parts_str = (absolute_path:str, path_without_extension:str) => new Promise<string>(async (resolve, _reject) => {
 
-	debugger
 	const parts_dir_fs_path = absolute_path + path_without_extension + "/parts/";
 	let   parts_imports_str = ""
-	// it seems that fsp.stat() is not working. what other ways exist to check if a directory exists? AI!
-	const pstat = await fsp.stat(parts_dir_fs_path).catch(() => false);
+	const dir_exists = fs.existsSync(parts_dir_fs_path);
 
-	if (pstat) {
+	if (dir_exists) {
 		const dir_entries = await fsp.readdir(parts_dir_fs_path, { withFileTypes: true });
 		for (const dir_entry of dir_entries) {
 			if (dir_entry.isDirectory()) {
