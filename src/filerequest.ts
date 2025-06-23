@@ -202,11 +202,13 @@ const fleshitout = (absolute_path:str, path_without_extension:str, includemaincs
 
 const get_view_parts_str = (absolute_path:str, path_without_extension:str) => new Promise<string>(async (resolve, _reject) => {
 
+	debugger
+	// path_without_extension contains, at the end of the string, something like "views/machines/machines". remove the last part so that we can find the parts directory AI!
 	const parts_dir_fs_path = absolute_path + path_without_extension + "/parts/";
 	let   parts_imports_str = ""
-	const dir_exists = fs.existsSync(parts_dir_fs_path);
+	const pstat = await fsp.stat(parts_dir_fs_path).catch(() => false);
 
-	if (dir_exists) {
+	if (pstat) {
 		const dir_entries = await fsp.readdir(parts_dir_fs_path, { withFileTypes: true });
 		for (const dir_entry of dir_entries) {
 			if (dir_entry.isDirectory()) {
