@@ -1,6 +1,7 @@
 
 
 import { str } from './defs.js'
+import fsp from "fs/promises";
 
 
 
@@ -99,27 +100,6 @@ function runit(fileurl:str, res:any, env:str, static_prefix:str, nocache:boolean
 
 
 
-const fleshitout = (absolute_path:str, path_without_extension:str, includemaincss:boolean = false) => new Promise(async (resolve, _reject) => {
-
-	const htmlpromise = fs.promises.readFile(absolute_path + path_without_extension + ".html", 'utf8')
-	const jspromise = fs.promises.readFile(absolute_path + path_without_extension + ".js", 'utf8')
-
-	const linkcsspath = "/assets/" + path_without_extension + ".css"
-
-	let [htmlstr, jsstr] = await Promise.all([htmlpromise, jspromise])
-
-	let css_replace                 = `<link rel = "stylesheet" href = "${linkcsspath}">`
-	if (includemaincss) css_replace += `<link rel = "stylesheet" href = "/assets/main.css">`
-
-	jsstr = jsstr.replace("{--html--}", `${htmlstr}`)
-	jsstr = jsstr.replace("{--css--}", css_replace)
-
-	resolve(jsstr)
-})
-
-
-
-
 async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:any) {
 
     const path_without_extension = jspath.substring(0, jspath.length - jsextension.length)
@@ -132,6 +112,12 @@ async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:a
 
 			if (jspath.includes("/components/"))  {
 				let jsstr = await fleshitout(absolute_path, path_without_extension, false)
+				res.send(jsstr)
+
+			} else if (jspath.includes("/views/") && !jspath.includes("/parts/") )  {
+				let jsstr = await fleshitout(absolute_path, path_without_extension, true)
+				let view_parts_str = await get_view_parts_str(absolute_path, path_without_extension)
+				jsstr = view_parts_str + "\n\n\n" + jsstr
 				res.send(jsstr)
 
 			} else if (jspath.includes("/views/") && jspath.includes("/parts/") )  {
@@ -189,6 +175,51 @@ async function css(absolute_path:str, csspath:str, cssextension:str, env:str, re
 	}
 }
 
+
+
+
+const fleshitout = (absolute_path:str, path_without_extension:str, includemaincss:boolean = false) => new Promise(async (resolve, _reject) => {
+
+	const htmlpromise = fs.promises.readFile(absolute_path + path_without_extension + ".html", 'utf8')
+	const jspromise = fs.promises.readFile(absolute_path + path_without_extension + ".js", 'utf8')
+
+	const linkcsspath = "/assets/" + path_without_extension + ".css"
+	let   css_replace = ""
+
+	let [htmlstr, jsstr] = await Promise.all([htmlpromise, jspromise])
+
+	if (includemaincss) css_replace += `<link rel = "stylesheet" href = "/assets/main.css">`
+	css_replace                 += `<link rel = "stylesheet" href = "${linkcsspath}">`
+
+	jsstr = jsstr.replace("{--html--}", `${htmlstr}`)
+	jsstr = jsstr.replace("{--css--}", css_replace)
+
+	resolve(jsstr)
+})
+
+
+
+
+const get_view_parts_str = (absolute_path:str, path_without_extension:str) => new Promise<string>(async (resolve, _reject) => {
+
+	debugger
+	const parts_dir_fs_path = absolute_path + path_without_extension + "/parts/";
+	let   parts_imports_str = ""
+	// it seems that fsp.stat() is not working. what other ways exist to check if a directory exists? AI!
+	const pstat = await fsp.stat(parts_dir_fs_path).catch(() => false);
+
+	if (pstat) {
+		const dir_entries = await fsp.readdir(parts_dir_fs_path, { withFileTypes: true });
+		for (const dir_entry of dir_entries) {
+			if (dir_entry.isDirectory()) {
+				const part_name = dir_entry.name;
+				const part_module_web_path = `/assets/${path_without_extension}/parts/${part_name}/${part_name}.js`;
+				parts_imports_str += `import '${part_module_web_path}';\n`;
+			}
+		}
+	}
+	resolve(parts_imports_str)	
+})
 
 
 
