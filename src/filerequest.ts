@@ -202,9 +202,9 @@ const fleshitout = (absolute_path:str, path_without_extension:str, includemaincs
 
 const get_view_parts_str = (absolute_path:str, path_without_extension:str) => new Promise<string>(async (resolve, _reject) => {
 
-	debugger
-	// path_without_extension contains, at the end of the string, something like "views/machines/machines". remove the last part so that we can find the parts directory AI!
-	const parts_dir_fs_path = absolute_path + path_without_extension + "/parts/";
+	const path_parts = path_without_extension.split('/');
+	const base_path = path_parts.slice(0, -1).join('/');
+	const parts_dir_fs_path = absolute_path + base_path + "/parts/";
 	let   parts_imports_str = ""
 	const pstat = await fsp.stat(parts_dir_fs_path).catch(() => false);
 
