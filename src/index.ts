@@ -158,6 +158,7 @@ app.get('/v/*restofpath', serveview)
 
 
 async function assets_general(req:any, res:any) {
+	if (req.url.includes("shared_worker.js")) debugger;
 	const fileurl = req.url
 	const nocache = !req.url.includes("shared_worker.js")
     FileRequest.runit(fileurl, res, VAR_NODE_ENV, STATIC_PREFIX, nocache);

@@ -7,12 +7,8 @@ import fsp from "fs/promises";
 
 
 import fs from "fs";
-//import { promisify } 		  from 'util';
-//import { exec as cpexec } from 'child_process';
 import * as path_util from "path";
 
-
-//const exec = promisify(cpexec);
 
 
 
@@ -108,19 +104,27 @@ async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:a
 
     if (env === "dev") {
 
-		if (jspath.includes("lazy/")) {
+		const is_lazy       = jspath.includes("lazy/")
+		const is_component  = jspath.includes("/components/")
+		const is_view       = jspath.includes("/views/") && !jspath.includes("/parts/")
+		const is_view_part  = jspath.includes("/views/") && jspath.includes("/parts/")
 
-			if (jspath.includes("/components/"))  {
+		if (is_lazy) {
+
+			if (is_component)  {
+
 				let jsstr = await fleshitout(absolute_path, path_without_extension, false)
 				res.send(jsstr)
 
-			} else if (jspath.includes("/views/") && !jspath.includes("/parts/") )  {
+			} else if (is_view)  {
+
 				let jsstr = await fleshitout(absolute_path, path_without_extension, true)
 				let view_parts_str = await get_view_parts_str(absolute_path, path_without_extension)
 				jsstr = view_parts_str + "\n\n\n" + jsstr
 				res.send(jsstr)
 
-			} else if (jspath.includes("/views/") && jspath.includes("/parts/") )  {
+			} else if (is_view_part)  {
+
 				let jsstr = await fleshitout(absolute_path, path_without_extension, true)
 				res.send(jsstr)
 			}
@@ -213,7 +217,7 @@ const get_view_parts_str = (absolute_path:str, path_without_extension:str) => ne
 		for (const dir_entry of dir_entries) {
 			if (dir_entry.isDirectory()) {
 				const part_name = dir_entry.name;
-				const part_module_web_path = `/assets/${path_without_extension}/parts/${part_name}/${part_name}.js`;
+				const part_module_web_path = `/assets/${base_path}/parts/${part_name}/${part_name}.js`;
 				parts_imports_str += `import '${part_module_web_path}';\n`;
 			}
 		}

@@ -2,8 +2,6 @@
 
 import { str } from './defs.js'
 import fs from "fs";
-import fsp from "fs/promises";
-import path from 'path';
 
 
 const BASEPATH = process.cwd() + '/'
@@ -34,20 +32,15 @@ const HandlePath = (viewpath:str, static_prefix:str, nodeenv:str, json_configs:a
 
 	let   view_base_path		   = getview_base_path(this_lazyload)
 
-	let script_jsstr = ""
-	if		(nodeenv === "dev/") { script_jsstr =  await handle_path__view_dev(view_base_path, static_prefix); }
-	else if (nodeenv === "dist/") { script_jsstr = await handle_path__view_dist(view_base_path, static_prefix); }
-
-
 	const dependencies_list:string[]      = []
 	get_all_lazyload_dependencies(all_lazyloads, this_lazyload, static_prefix, dependencies_list)
-	const dependencies_list_script_strs = dependencies_list.map((v) => `<script type="module" src="${v}"></script>`).join('\n')
+	const dependencies_list_script_strs = dependencies_list.map((v) => `<script type="module" src="${v}" is_lazyload_asset="true"></script>`).join('\n')
 	
 
 	const js_scripts_str = `
 		<script type="module" src="/assets/main.js"></script>
 		${dependencies_list_script_strs}
-		${script_jsstr}
+		<script type="module" src="/assets/${view_base_path}.js" is_lazyload_asset="true"></script>
 	`
 
 	const css_link_strs = `<link rel="stylesheet" href="/assets/index.css"></link>`
@@ -58,6 +51,68 @@ const HandlePath = (viewpath:str, static_prefix:str, nodeenv:str, json_configs:a
 })
 
 
+
+
+
+
+
+
+const getlazyload = (path:str, all_lazyloads:any[]) => {
+
+	for (const lazyload of all_lazyloads) {
+
+		if (lazyload.type !== "view") continue;
+		
+		if (lazyload.urlmatch_regex.test(path)) {
+			return lazyload;
+		}
+	}
+	
+	return null;
+}
+
+
+
+
+const getview_base_path = (lazyload:any) => {
+
+	let view_file_path = ""
+
+	if (lazyload.is_instance) view_file_path += "instance/"
+
+	view_file_path += "lazy/views/" + lazyload.name + "/" + lazyload.name
+
+	return view_file_path
+}
+
+
+
+
+const get_all_lazyload_dependencies = (all_lazyloads:any, lazyload:any, static_prefix:str, paths_list:string[]) => {
+
+	for (const dep of lazyload.dependencies) {
+
+		const dep_lazyload  = all_lazyloads.find((v:any) =>  v.name == dep.name)
+
+		let resofpath = "views/" // default
+		switch (dep_lazyload.type) {
+			case "view"       : resofpath = "lazy/views/"  + dep_lazyload.name + "/" + dep_lazyload.name + ".js"; break;
+			case "component"  : resofpath = "lazy/components/" + dep_lazyload.name + "/" + dep_lazyload.name + ".js"; break;
+			case "thirdparty" : resofpath = "thirdparty/" + dep_lazyload.name + ".js"; break;
+		}
+
+		let   lazyref_path  = "/assets/" + (dep_lazyload.is_instance ? 'instance/' : '') + resofpath
+
+		const is_already_added = paths_list.find((v) => v == lazyref_path) ? true : false
+		if (is_already_added) continue
+
+		paths_list.push(lazyref_path)
+
+		if (dep_lazyload.dependencies) {
+			get_all_lazyload_dependencies(all_lazyloads, dep_lazyload, static_prefix, paths_list)
+		}
+	}
+}
 
 
 /*
@@ -107,6 +162,7 @@ const HandlePath_original = (pathparts:str[], static_prefix:str, nodeenv:str) =>
 
 
 
+/*
 const handle_path__view_dev = (view_base_path:str, static_prefix:str) => new Promise<string>(async (resolve, _reject) => {
 
 	const promises:Promise<any>[] = []
@@ -115,24 +171,7 @@ const handle_path__view_dev = (view_base_path:str, static_prefix:str) => new Pro
 	promises.push(fs.promises.readFile(p + ".html", 'utf8'))
 	const r = await Promise.all(promises)
 
-	/* we import all parts of the view here. We only do this in dev, since we want to see the separate files in  etc. In dist build process its bundled into the main view file.  */
-	let parts_imports_str = "";
-	const view_dir_relative_path = path.dirname(view_base_path);
-	const parts_dir_relative_path = path.join(view_dir_relative_path, "parts");
-	const parts_dir_fs_path = path.join(BASEPATH, static_prefix + "dev", parts_dir_relative_path);
-
-	if (await fsp.stat(parts_dir_fs_path).catch(() => false)) {
-		const dir_entries = await fsp.readdir(parts_dir_fs_path, { withFileTypes: true });
-		for (const dir_entry of dir_entries) {
-			if (dir_entry.isDirectory()) {
-				const part_name = dir_entry.name;
-				const part_module_web_path = `/assets/${parts_dir_relative_path}/${part_name}/${part_name}.js`;
-				parts_imports_str += `import '${part_module_web_path}';\n`;
-			}
-		}
-	}
-
-	let jsstr = parts_imports_str + "\n\n" + r[0].replace("{--html--}", `${r[1]}`)
+	let jsstr = r[0].replace("{--html--}", `${r[1]}`)
 	jsstr     = jsstr.replace("{--css--}", `<link rel="stylesheet" href="/assets/main.css"></link><link rel="stylesheet" href="/assets/${view_base_path}.css"></link>`)
 	const script_jsstr = `<script type="module">${jsstr}</script>`
 
@@ -153,41 +192,7 @@ const handle_path__view_dist = (view_base_path:str, static_prefix:str) => new Pr
 
 	resolve(script_jsstr)	
 })
-
-
-
-
-const getlazyload = (path:str, all_lazyloads:any[]) => {
-
-	for (const lazyload of all_lazyloads) {
-
-		if (lazyload.type !== "view") continue;
-		
-		if (lazyload.urlmatch_regex.test(path)) {
-			return lazyload;
-		}
-	}
-	
-	return null;
-}
-
-
-
-
-const getview_base_path = (lazyload:any) => {
-
-	let view_file_path = ""
-
-	if (lazyload.is_instance) view_file_path += "instance/"
-
-	view_file_path += "lazy/views/" + lazyload.name + "/" + lazyload.name
-
-	return view_file_path
-}
-
-
-
-
+*/
 /*
 const getview_js_content = (basepath:str, nodeenv:str, static_prefix:str) => new Promise <any>(async (resolve, _reject) => {
 
@@ -215,31 +220,6 @@ const getview_js_content = (basepath:str, nodeenv:str, static_prefix:str) => new
 
 
 
-const get_all_lazyload_dependencies = (all_lazyloads:any, lazyload:any, static_prefix:str, paths_list:string[]) => {
-
-	for (const dep of lazyload.dependencies) {
-
-		const dep_lazyload  = all_lazyloads.find((v:any) =>  v.name == dep.name)
-
-		let resofpath = "views/" // default
-		switch (dep_lazyload.type) {
-			case "view"       : resofpath = "lazy/views/"  + dep_lazyload.name + "/" + dep_lazyload.name + ".js"; break;
-			case "component"  : resofpath = "lazy/components/" + dep_lazyload.name + "/" + dep_lazyload.name + ".js"; break;
-			case "thirdparty" : resofpath = "thirdparty/" + dep_lazyload.name + ".js"; break;
-		}
-
-		let   lazyref_path  = "/assets/" + (dep_lazyload.is_instance ? 'instance/' : '') + resofpath
-
-		const is_already_added = paths_list.find((v) => v == lazyref_path) ? true : false
-		if (is_already_added) continue
-
-		paths_list.push(lazyref_path)
-
-		if (dep_lazyload.dependencies) {
-			get_all_lazyload_dependencies(all_lazyloads, dep_lazyload, static_prefix, paths_list)
-		}
-	}
-}
 
 
 
