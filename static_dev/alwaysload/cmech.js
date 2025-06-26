@@ -1,0 +1,438 @@
+import { EnsureObjectStoresActive as LocalDBSyncEnsureObjectStoresActive } from "./localdbsync.js";
+// these are loaded on Init and stay loaded indefinitely
+let _lazyload_data_funcs = [];
+// these are set when a new view is added, and removed when that view is rmoved (or when load view failed) 
+let _loadeddata = new Map() // map by view name of Map by path name with data
+;
+let _searchparams = new Map() // map by view name
+;
+let _pathparams = new Map() // map by view name
+;
+const Init = (lazyload_data_funcs)=>{
+    _lazyload_data_funcs = lazyload_data_funcs;
+};
+const AddView = (componentname, pathparams, searchparams_raw, localdb_preload)=>new Promise(async (res, rej)=>{
+        const searchparams_genericrowt = {};
+        for (const [key, value] of searchparams_raw.entries()){
+            searchparams_genericrowt[key] = decodeURIComponent(value);
+        }
+        {
+            const promises = [];
+            let promises_r = [];
+            const localdbsync_promise = localdb_preload ? LocalDBSyncEnsureObjectStoresActive(localdb_preload) : Promise.resolve(1);
+            promises.push(localdbsync_promise);
+            promises.push(_lazyload_data_funcs[componentname + "_other"](pathparams, new URLSearchParams, searchparams_raw));
+            promises.push(new Promise(async (res, rej)=>{
+                let r = {};
+                let _ = {};
+                try {
+                    _ = await localdbsync_promise;
+                    r = await _lazyload_data_funcs[componentname + "_indexeddb"](pathparams, new URLSearchParams, searchparams_raw);
+                } catch  {
+                    rej();
+                    return;
+                }
+                res(r);
+            }));
+            try {
+                promises_r = await Promise.all(promises);
+            } catch  {
+                rej();
+                return;
+            }
+            const loadeddata = new Map();
+            for (const [datapath, generic_row_array] of promises_r[1].entries())loadeddata.set(datapath, generic_row_array);
+            for (const [datapath, generic_row_array] of promises_r[2].entries())loadeddata.set(datapath, generic_row_array);
+            _loadeddata.set(componentname, loadeddata);
+        }
+        _searchparams.set(componentname, searchparams_genericrowt);
+        _pathparams.set(componentname, pathparams);
+        const parentEl = document.querySelector("#views");
+        parentEl.insertAdjacentHTML("beforeend", `<v-${componentname} class='view'></v-${componentname}>`);
+        const el = parentEl.getElementsByTagName(`v-${componentname}`)[0];
+        el.addEventListener("hydrated", ()=>{
+            res(1);
+        });
+        el.addEventListener("failed", ()=>{
+            _loadeddata.delete(componentname);
+            _searchparams.delete(componentname);
+            _pathparams.delete(componentname);
+            el.remove();
+            res(null);
+        });
+        el.addEventListener("lateloaded", lateloaded);
+        parentEl.addEventListener("visibled", visibled);
+        let has_late_loaded = false;
+        let has_visibled = false;
+        function visibled() {
+            if (el.opts?.kdonvisibled) {
+                el.kd(_loadeddata.get(componentname), 'visibled', _pathparams.get(componentname), _searchparams.get(componentname));
+                el.sc();
+                has_visibled = true;
+                handle_visibled_and_late_loaded();
+            }
+            parentEl.removeEventListener("visibled", visibled);
+        }
+        function lateloaded() {
+            if (el.opts?.kdonvisibled) {
+                has_late_loaded = true;
+                handle_visibled_and_late_loaded();
+            }
+            parentEl.removeEventListener("lateloaded", lateloaded);
+        }
+        function handle_visibled_and_late_loaded() {
+            if (has_late_loaded && has_visibled && el.opts?.kdonlateloaded) {
+                el.kd(_loadeddata.get(componentname), 'lateloaded', _pathparams.get(componentname), _searchparams.get(componentname));
+                el.sc();
+            }
+        }
+    });
+const ViewConnectedCallback = async (component, opts = {
+    kdonvisibled: false,
+    kdonlateloaded: false
+})=>new Promise(async (res, _rej)=>{
+        const tagname = component.tagName.toLowerCase();
+        const tagname_split = tagname.split("-");
+        const viewname = tagname_split[1];
+        if (tagname_split[0] !== 'v') throw new Error("Not a view component");
+        for(const prop in component.a)component.a[prop] = component.getAttribute(prop);
+        if (!opts.kdonvisilbed) opts.kdonvisilbed = false;
+        if (!opts.kdonlateloaded) opts.kdonlateloaded = false;
+        component.opts = opts;
+        component.subelshldr = [];
+        const loadeddata = _loadeddata.get(viewname);
+        component.kd(loadeddata, 'initial', _pathparams.get(viewname), _searchparams.get(viewname));
+        component.sc();
+        $N.EngagementListen.Add_Listener(component, "component", "resize", null, async ()=>{
+            component.sc();
+        });
+        // component.subelshldr array will be populated by the sub elements of the view if they exist after initial render -- keep in mind they will be EVEN AFTER the view is initially hydrated at any point later 
+        component.subelshldr?.forEach((el)=>{
+            el.addEventListener("failed", ()=>{
+                component.dispatchEvent(new CustomEvent("failed"));
+                res();
+                return;
+            });
+            el.addEventListener("hydrated", ()=>{
+                el.dataset.sub_is_hydrated = "1";
+                if (component.subelshldr.every((el)=>el.dataset.sub_is_hydrated === "1")) {
+                    res();
+                    return;
+                }
+            });
+        }) ?? res();
+    });
+const ViewPartConnectedCallback = async (component)=>new Promise(async (res, _rej)=>{
+        const tagname = component.tagName.toLowerCase();
+        const tagname_split = tagname.split("-");
+        if (tagname_split[0] !== 'vp') throw new Error("Not a view part component");
+        const rootnode = component.getRootNode();
+        const host = rootnode.host;
+        const ancestor_view_tagname = host.tagName.toLowerCase();
+        const ancestor_view_tagname_split = ancestor_view_tagname.split("-");
+        const ancestor_viewname = ancestor_view_tagname_split[1];
+        for(const prop in component.a)component.a[prop] = component.getAttribute(prop);
+        host.subelshldr.push(component);
+        component.hostview = host;
+        const loadeddata = _loadeddata.get(ancestor_viewname);
+        component.kd(loadeddata, 'initial', _pathparams.get(ancestor_viewname), _searchparams.get(ancestor_viewname));
+        component.sc();
+        $N.EngagementListen.Add_Listener(component, "component", "resize", null, async ()=>{
+            component.sc();
+        });
+        res();
+    });
+const AttributeChangedCallback = (component, name, oldval, newval, _opts)=>{
+    console.log("I THINK THIS IS FIXED. JUST DONT PASS DATA TO ATTRIBUTE FUNCTION DUMB ASS. .... need to somehow wrap in logic where if data is changed or searchparams that (for subels) it allows the attributes to be changed first, then wait for the load and kd calls to transpire before calling sc");
+    if (oldval === null) return;
+    const a = component.a;
+    a[name] = newval;
+    if (!a.updatescheduled) {
+        a.updatescheduled = true;
+        Promise.resolve().then(()=>{
+            component.sc();
+            a.updatescheduled = false;
+        });
+    }
+};
+const ViewDisconnectedCallback = (component)=>{
+    if (!component.tagName.startsWith("V-")) throw new Error("Not a view component");
+    const componentname = component.tagName.toLowerCase().split("-")[1];
+    _loadeddata.delete(componentname);
+    _searchparams.delete(componentname);
+    _pathparams.delete(componentname);
+};
+const ViewPartDisconnectedCallback = (component)=>{
+    if (!component.tagName.startsWith("VP-")) throw new Error("Not a view part component");
+    const index = component.hostview.subelshldr.indexOf(component);
+    component.hostview.subelshldr.splice(index, 1);
+};
+const SearchParamsChanged = (newsearchparams)=>new Promise(async (res, rej)=>{
+        const activeviewel = document.getElementById("views").lastElementChild;
+        const componentname = activeviewel.tagName.toLowerCase().split("-")[1];
+        const pathparams = _pathparams.get(componentname);
+        const oldsearchparams = _searchparams.get(componentname);
+        const promises = [];
+        let promises_r = [];
+        promises.push(_lazyload_data_funcs[componentname + "_other"](pathparams, oldsearchparams, newsearchparams));
+        promises.push(_lazyload_data_funcs[componentname + "_indexeddb"](pathparams, oldsearchparams, newsearchparams));
+        try {
+            promises_r = await Promise.all(promises);
+        } catch  {
+            rej();
+            return;
+        }
+        _searchparams.set(componentname, newsearchparams);
+        const loadeddata = new Map();
+        for (const [datapath, generic_row_array] of promises_r[1].entries())loadeddata.set(datapath, generic_row_array);
+        for (const [datapath, generic_row_array] of promises_r[2].entries())loadeddata.set(datapath, generic_row_array);
+        _loadeddata.set(componentname, loadeddata);
+        activeviewel.kd(loadeddata, 'searchchanged', _pathparams.get(componentname), _searchparams.get(componentname));
+        activeviewel.sc();
+        for (const subel of activeviewel.subelshldr){
+            subel.kd(loadeddata, 'searchchanged', _pathparams.get(componentname), _searchparams.get(componentname));
+            subel.sc();
+        }
+        res();
+    });
+const DataChanged = (updated)=>{
+    // updated is a map, key being a string like: '1:machines'. 1: localdb, 2: remotedb, 3:remoteapi	
+    // if 1, it is always a collection like '1:machines' or '1:users'
+    // if 1, the data is always an array, even if just one object. id of object is always present, and is the id of the object in the collection
+    const viewsel = document.getElementById("views");
+    const update_types = [];
+    const update_paths = [];
+    const update_lists = [];
+    for (const [datapath, updatedlist] of updated){
+        update_types.push(Number(datapath.charAt(0))) // 1: localdb, 2: remotedb, 3: remoteapi 
+        ;
+        update_paths.push(datapath.slice(2));
+        update_lists.push(updatedlist);
+    }
+    for (const [view_component_name, loadeddata] of _loadeddata){
+        const viewel = viewsel.querySelector(`v-${view_component_name}`);
+        const loadeddata_types = [];
+        const loadeddata_paths = [];
+        const loadeddata_arrays = [];
+        for (const [loadeddata_path_raw, loadeddata_array] of loadeddata){
+            loadeddata_types.push(Number(loadeddata_path_raw.charAt(0))) // 1: localdb, 2: remotedb, 3: remoteapi
+            ;
+            loadeddata_paths.push(loadeddata_path_raw.slice(2));
+            loadeddata_arrays.push(loadeddata_array);
+        }
+        for(let i = 0; i < update_types.length; i++){
+            let loadeddata_index = -1;
+            for(let j = 0; j < loadeddata_types.length; j++){
+                if (loadeddata_types[j] !== update_types[i]) continue;
+                if (loadeddata_paths[j] === update_paths[i]) {
+                    loadeddata_index = j;
+                    break;
+                }
+                if (update_types[i] === 1 && loadeddata_paths[j].includes('/') && loadeddata_paths[j].startsWith(update_paths[i] + '/')) {
+                    loadeddata_index = j;
+                    break;
+                }
+            }
+            if (loadeddata_index === -1) continue; // no match found
+            const list_of_add_and_patches = [];
+            const list_of_deletes = [];
+            for (const d of update_lists[i]){
+                if (d.isdeleted) list_of_deletes.push(d);
+                else list_of_add_and_patches.push(d);
+            }
+            updateArrayIfPresent(loadeddata_arrays[loadeddata_index], list_of_add_and_patches, list_of_deletes);
+            viewel.kd(loadeddata, 'datachanged', _pathparams.get(view_component_name), _searchparams.get(view_component_name));
+            viewel.sc();
+            for (const subel of viewel.subelshldr){
+                subel.kd(loadeddata, 'datachanged', _pathparams.get(view_component_name), _searchparams.get(view_component_name));
+                subel.sc();
+            }
+        }
+    }
+};
+const RemoveActiveView = ()=>{
+    const viewsel = document.getElementById("views");
+    const activeview = viewsel.lastElementChild;
+    const viewname = activeview.tagName.toLowerCase().split("-")[1];
+    if (!activeview) return;
+    _loadeddata.delete(viewname);
+    _searchparams.delete(viewname);
+    _pathparams.delete(viewname);
+    activeview.remove();
+};
+/*
+const GetViewParams = (component:HTMLElement) => { 
+
+	let viewname = ""
+	let tagname  = component.tagName.toLowerCase()
+
+	if (tagname.startsWith("v-")) {
+		viewname = tagname.split("-")[1]
+	
+	} else if (tagname.startsWith("vp-")) {
+
+		const rootnode                    = component.getRootNode()
+		const host                        = ( rootnode as any ).host as HTMLElement
+		const ancestor_view_tagname       = host.tagName.toLowerCase()
+		const ancestor_view_tagname_split = ancestor_view_tagname.split("-")
+		const ancestor_viewname           = ancestor_view_tagname_split[1]
+
+		viewname = ancestor_viewname
+
+	} else { 
+		throw new Error("Not a component sent to GetPathParams")
+	}
+
+	const path   = _pathparams.get(viewname)!
+	const search = _searchparams.get(viewname)!
+
+	return { path, search }
+}
+*/ const updateArrayIfPresent = (tolist, list_of_add_and_patches, list_of_deletes)=>{
+    // Even single items like a machine (e.g. 'machines/1234') will always be an array of one object
+    // we create a map because we have to assume this could be a large array and we want to avoid O(n^2) complexity
+    // thus why we createa a map of the ids
+    const index_map = new Map();
+    tolist.forEach((row, i)=>index_map.set(row.id, i));
+    for (const d of list_of_add_and_patches){
+        const rowindex = index_map.get(d.id);
+        if (rowindex === undefined) tolist.push(d);
+        else tolist[rowindex] = d;
+    }
+    // Process deletions in reverse order to avoid index shifting issues
+    const delete_indices = list_of_deletes.map((d)=>index_map.get(d.id)).filter((idx)=>idx !== undefined).sort((a, b)=>b - a); // Sort descending
+    for (const rowindex of delete_indices){
+        tolist.splice(rowindex, 1);
+    }
+};
+/*
+const HandleFirestoreDataUpdated = async (updateddata:FirestoreFetchResultT) => {
+
+	if (updateddata === null) return // updateddata is always an array of objects, never null. This line here is to shut up typescript linting
+
+	const keys = [...updateddata.keys()]
+
+	console.log("DONE WEIRD . CHROME CRAPS LIKE A SF 'RESIDENT' ON THE STREET OF MY IMMACULATE CODE.")
+
+	const updateddata_path_dets = keys.map(p=> { const pd = pathdets(p); return pd; })
+
+	console.log("ALL FUCKED. updateddata CAN include something like 'machines/somejackedid' while user is viewing 'machines/unjackedid' and 'somejacked' will just jack right into 'unjacked'. ALL fucked and jacked")
+
+	for(const [viewname, viewloadeddata] of _viewloadeddata) {
+		if (!viewloadeddata || viewloadeddata.size === 0)    continue
+
+		let is_view_affected_flag = false
+		let viewloadspecs_affected_paths:FirestoreLoadSpecT = new Map()
+
+		viewloadeddata.forEach((viewloadeddata_list, loadeddata_path)=> {
+			const lnd = pathdets(loadeddata_path)
+
+			updateddata_path_dets.forEach(und=> {
+				
+				if (lnd.collection === und.collection && lnd.subcollection === und.subcollection) {
+					is_view_affected_flag = true
+					viewloadspecs_affected_paths.set(loadeddata_path, _viewloadspecs.get(viewname)!.get(loadeddata_path)!)
+
+
+					// all FirestoreFetchResultT objects are arrays of objects -- so always dealing with arrays even if just array of one object
+
+					const updateddata_list    = updateddata.get(und.path) as any[]
+
+					const index_map = new Map();
+					viewloadeddata_list.forEach((row:any, i:num) => index_map.set(row.id, i))
+
+					for(let i = 0; i < updateddata_list.length; i++) {
+						const rowindex = index_map.get(updateddata_list[i].id)
+						if (rowindex === undefined) 
+							viewloadeddata_list.push(updateddata_list[i])
+						else
+							viewloadeddata_list[rowindex] = updateddata_list[i]
+					}
+
+				}
+			})
+		})
+
+
+		if (is_view_affected_flag && viewloadspecs_affected_paths.size > 0) {
+
+			const viewel = document.querySelector(`v-${viewname}`) as HTMLElement & CMechT
+
+			set_component_m_data(true, viewel, "", viewloadspecs_affected_paths, viewloadeddata)
+
+			if (viewel.mdlchngd) await viewel.mdlchngd( [...viewloadspecs_affected_paths.keys()] )
+			if (viewel.kd) viewel.kd()
+			viewel.sc();
+
+			for(const subel of ( viewel.subelshldr as ( HTMLElement & CMechT )[] )) {
+				set_component_m_data(false, subel, subel.tagName.toLowerCase(), viewloadspecs_affected_paths, viewloadeddata)
+				if (subel.mdlchngd) await subel.mdlchngd( [...viewloadspecs_affected_paths.keys()] )
+				if (subel.kd) subel.kd()
+				subel.sc()
+			}
+		}
+
+
+
+	}
+
+
+	function pathdets(p:str) {
+		const sp = p.split('/')
+		const collection = sp[0]
+		const subcollection = sp[2] || null
+		const doc = sp[1] || null
+		const subdoc = sp[3] || null
+		const isdoc = doc || subdoc ? true : false
+		return { path:p, collection, subcollection, doc, subdoc, isdoc }
+	}
+}
+*/ /*
+const handle_view_initial_data_load = (viewname:str, loadother:()=>{}|null) => new Promise<null|num>(async (res, _rej)=> {
+
+	const loadspecs = _viewloadspecs.get(viewname)!
+
+	const promises:any[] = []
+
+	promises.push(loadspecs.size ? FirestoreDataGrab(loadspecs) : 0) 
+	promises.push(loadother ? loadother() : 0)
+
+	const r = await Promise.all(promises)
+
+	if (r[0] === null || r[1] === null) { res(null); return; }
+
+	if (r[0] !== 0) {
+		FirestoreAddToListens(loadspecs)
+		_viewloadeddata.set(viewname, r[0])
+	}
+
+	res(1)
+})
+*/ /*
+function set_component_m_data(is_view:bool, component:HTMLElement & CMechT, componenttagname:str, loadspecs:FirestoreLoadSpecT, loaddata:FirestoreFetchResultT) {
+
+	if (!loaddata || !loaddata.size || !loadspecs.size) return
+
+	const filtered_loadspecs:FirestoreLoadSpecT = new Map()
+
+	loadspecs.forEach((ls, path)=> {
+		if (is_view && ( !ls.els || ls.els.includes('this') ))           filtered_loadspecs.set(path,ls)
+		if (!is_view && ( ls.els && ls.els.includes(componenttagname) )) filtered_loadspecs.set(path,ls) 
+	}); 
+
+	filtered_loadspecs.forEach((ls, path)=> {
+		const d              = loaddata.get(path)!
+		component.m[ls.name] = Array.isArray(component.m[ls.name]) ? d : d[0]
+	});
+}
+*/ export { Init, AddView, SearchParamsChanged, DataChanged, RemoveActiveView };
+if (!window.$N) {
+    window.$N = {};
+}
+window.$N.CMech = {
+    ViewConnectedCallback,
+    ViewPartConnectedCallback,
+    AttributeChangedCallback,
+    ViewDisconnectedCallback,
+    ViewPartDisconnectedCallback
+};

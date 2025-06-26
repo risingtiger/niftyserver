@@ -1,0 +1,155 @@
+
+
+header.viewheader {
+    background: white;
+    height: 57px !important;
+    box-shadow: 0 0 15px 0px rgb(0 0 0 / 11%);
+	justify-content: space-between;
+
+    & .left {
+    width: 80%;
+    }
+    & .middle {
+    width: 10%;
+    }
+    & .right {
+    width: 10%;
+    }
+}
+
+img.logo {
+    width: 47px;
+    margin-left: 15px;
+    margin-right: 8px;
+    position: relative;
+    top: -8px;
+}
+
+img.logo + strong {
+    display: inline-block;
+    position: relative;
+    top: -20px;
+    font-size: 18px;
+}
+
+.loginout {
+    color: var(--actioncolor);
+    font-weight: bold;
+    font-size: 15px;
+    position: relative;
+    top: 13px;
+    right: 20px;
+    text-align: right;
+    display: inline-block;
+}
+
+.testy {
+    display: none;
+    position: absolute;
+    width:  100px;
+    height: 100px;
+    top:    80px;
+    left:   30px;
+    background-color: orange;
+    opacity: 0;
+}
+
+
+.loggedinstatus {
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    width: 100%;
+    font-size: 8px;
+
+    & .loggedinstatus {
+        padding: 8px 10px;
+        margin: 0 0 20px 0;
+        font-size: 10px;
+
+        & span {
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--actioncolor);
+        }
+    }
+}
+
+.appupdatedate {
+    position: absolute;
+    bottom: 30px;
+    left: 10px;
+    font-size: 12px;
+}
+
+a {
+    color: red;
+
+    & > span {
+        color: blue;
+    }
+}
+
+
+
+
+.adminsection {
+    display: flex;
+    flex-wrap: wrap;
+    padding: var(--padding-container);
+    justify-content: space-between;
+
+    & > section {
+        border: 1px solid #e7e7e7;
+        background: #fbfbfb;
+        box-sizing: border-box;
+        border-radius: 8px;
+        padding: var(--padding-container);
+        width: calc(50% - 5px);
+        margin: 0 0 11px 0;
+    }
+    & > section.fullwidth {
+		width: 100%;
+	}
+    
+    & > section > h2 {
+        font-size: 16px;
+        text-align: left;
+    }
+
+    & > section > h2 + div {
+        display: flex;
+        flex-wrap: wrap;
+
+    }
+
+    & > section > h2 + div > h5 {
+        font-weight: normal;
+        text-decoration: underline;
+        padding-right: 20px;
+        cursor: pointer;
+    }
+}
+
+
+
+#admin_response, #pwtdata_interface_response {
+    border: 1px solid #e7e7e7;
+    background: #fbfbfb;
+    border-radius: 8px;
+    margin: 0 var(--padding-container) 0 var(--padding-container);
+}
+
+
+#adminsection_aiask { 
+	& > .textareawrap {
+		& textarea {
+			width: 100%;
+			height: 212px;
+		}
+		padding-bottom: 20px;
+	}
+
+}
+
+

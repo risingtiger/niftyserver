@@ -1,0 +1,548 @@
+(() => {
+  // ../../.nifty/files/instance/lazy/views/home/home.js
+  var ATTRIBUTES = { propa: "" };
+  var VHome = class extends HTMLElement {
+    a = { ...ATTRIBUTES };
+    m = { propa: "" };
+    s = { showAuth: false, showTesty: false, admin_response_str: "", pwtdata_interface_response_str: "", report_month_meters: [], month_names: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] };
+    reconcile_return_str;
+    shadow;
+    static get observedAttributes() {
+      return Object.keys(ATTRIBUTES);
+    }
+    constructor() {
+      super();
+      this.reconcile_return_str = "";
+      this.shadow = this.attachShadow({ mode: "open" });
+    }
+    async connectedCallback() {
+      const d = /* @__PURE__ */ new Date();
+      d.setUTCDate(1);
+      d.setUTCHours(0);
+      d.setUTCMinutes(0);
+      d.setUTCSeconds(0);
+      d.setUTCMilliseconds(0);
+      d.setUTCMonth(d.getUTCMonth() - 1);
+      this.s.report_month_meters.push({ year: d.getUTCFullYear(), month: d.getUTCMonth() });
+      d.setUTCMonth(d.getUTCMonth() - 1);
+      this.s.report_month_meters.push({ year: d.getUTCFullYear(), month: d.getUTCMonth() });
+      d.setUTCMonth(d.getUTCMonth() - 1);
+      this.s.report_month_meters.push({ year: d.getUTCFullYear(), month: d.getUTCMonth() });
+      await $N.CMech.ViewConnectedCallback(this);
+      this.dispatchEvent(new Event("hydrated"));
+      const tel = this.shadow.getElementById("aiask_textarea");
+      if (tel) {
+        tel.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            this.aiask();
+          }
+        });
+      }
+    }
+    async attributeChangedCallback(name, oldval, newval) {
+      $N.CMech.AttributeChangedCallback(this, name, oldval, newval);
+    }
+    disconnectedCallback() {
+      $N.CMech.ViewDisconnectedCallback(this);
+    }
+    kd = () => {
+    };
+    sc() {
+      render(this.template(this.s, this.reconcile_return_str), this.shadow);
+    }
+    testing2(e) {
+      setTimeout(() => {
+        e.detail.done();
+      }, 5e3);
+    }
+    async LogoutUser() {
+      localStorage.removeItem("id_token");
+      localStorage.removeItem("token_expires_at");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("auth_group");
+      localStorage.removeItem("user_email");
+      setTimeout(() => {
+        window.location.href = "/v/login";
+      }, 600);
+      this.sc();
+    }
+    get_reverse_geo_code_zip_state = () => new Promise(async (res, _rej) => {
+      const lat = 36.988873;
+      const lon = -112.968119;
+      const r = await $N.FetchLassie("/api/pwt/get_reverse_geo_code_zip_state?lat=" + lat + "&lon=" + lon);
+      if (!r.ok) {
+        alert("Error");
+        res(1);
+        return;
+      }
+      console.log(r);
+      res(1);
+    });
+    async meters_monthly() {
+    }
+    async run_report_month_meters(btnel) {
+      const val = this.shadow.getElementById("report_month_meters").value;
+      const split = val.split(",");
+      const year = parseInt(split[0]);
+      const month = parseInt(split[1]);
+      const csvstr = await $N.FetchLassie("/api/pwt/reports/meters_monthly?year=" + year + "&month=" + month, { headers: { "Content-Type": "text/csv", "Accept": "text/csv" } });
+      if (!csvstr.ok) {
+        alert("Error");
+        btnel.setAttribute("resolved", true);
+        this.sc();
+        return;
+      }
+      $N.Utils.CSV_Download(csvstr.data, "meters_monthly_" + year + "_" + month);
+      btnel.setAttribute("resolved", true);
+      this.sc();
+    }
+    async aiask() {
+      const aiask_textarea_el = this.shadow.getElementById("aiask_textarea");
+      const question = aiask_textarea_el.value;
+      if (!question) {
+        alert("Please enter a question");
+        return;
+      }
+      const body = { question, machineid: "0002231" };
+      const obj = { method: "POST", body: JSON.stringify(body) };
+      const r = await $N.FetchLassie("/api/pwt/aiask/machine_statuses", obj);
+      if (!r.ok) {
+        alert("Error");
+        return;
+      }
+      if (r.ok && r.data.answer) {
+        aiask_textarea_el.value = aiask_textarea_el.value + "\n\n" + r.answer + "\n\n";
+        aiask_textarea_el.scrollTop = aiask_textarea_el.scrollHeight;
+      } else {
+        alert("No answer found");
+      }
+      this.sc();
+    }
+    async adminetc(api, method = "GET", body, queries) {
+      if (confirm("Are you sure you want to run admin: " + api)) {
+        const obj = { method };
+        if (body) {
+          obj.body = JSON.stringify(body);
+        }
+        if (queries) {
+          const queryString = Object.entries(queries).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join("&");
+          api = `${api}${api.includes("?") ? "&" : "?"}${queryString}`;
+        }
+        const response = await $N.FetchLassie("/api/pwt/admin/" + api, obj);
+        if (!response.ok) {
+          alert("Error");
+          return;
+        }
+        this.s.admin_response_str = response.data.message;
+        this.sc();
+      }
+    }
+    async pwtdata_interfaceetc(api, method, body) {
+      if (confirm("Are you sure you want to run pwtdata interface: " + api)) {
+        const obj = { method };
+        if (body) {
+          obj.body = JSON.stringify(body);
+        }
+        const response_str = await $N.FetchLassie("/api/pwt/pwtdata_interface/" + api, obj);
+        if (!response_str.ok) {
+          alert("Error");
+          return;
+        }
+        this.s.pwtdata_interface_response_str = response_str.data;
+        this.sc();
+      }
+    }
+    get_logs() {
+      $N.Logger.Get();
+    }
+    template = (_s, _reconcile_return_str) => {
+      return html`<link rel='stylesheet' href='/assets/main.css'><style>
+
+header.viewheader {
+    background: white;
+    height: 57px !important;
+    box-shadow: 0 0 15px 0px rgb(0 0 0 / 11%);
+	justify-content: space-between;
+
+    & .left {
+    width: 80%;
+    }
+    & .middle {
+    width: 10%;
+    }
+    & .right {
+    width: 10%;
+    }
+}
+
+img.logo {
+    width: 47px;
+    margin-left: 15px;
+    margin-right: 8px;
+    position: relative;
+    top: -8px;
+}
+
+img.logo + strong {
+    display: inline-block;
+    position: relative;
+    top: -20px;
+    font-size: 18px;
+}
+
+.loginout {
+    color: var(--actioncolor);
+    font-weight: bold;
+    font-size: 15px;
+    position: relative;
+    top: 13px;
+    right: 20px;
+    text-align: right;
+    display: inline-block;
+}
+
+.testy {
+    display: none;
+    position: absolute;
+    width:  100px;
+    height: 100px;
+    top:    80px;
+    left:   30px;
+    background-color: orange;
+    opacity: 0;
+}
+
+
+.loggedinstatus {
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    width: 100%;
+    font-size: 8px;
+
+    & .loggedinstatus {
+        padding: 8px 10px;
+        margin: 0 0 20px 0;
+        font-size: 10px;
+
+        & span {
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--actioncolor);
+        }
+    }
+}
+
+.appupdatedate {
+    position: absolute;
+    bottom: 30px;
+    left: 10px;
+    font-size: 12px;
+}
+
+a {
+    color: red;
+
+    & > span {
+        color: blue;
+    }
+}
+
+
+
+
+.adminsection {
+    display: flex;
+    flex-wrap: wrap;
+    padding: var(--padding-container);
+    justify-content: space-between;
+
+    & > section {
+        border: 1px solid #e7e7e7;
+        background: #fbfbfb;
+        box-sizing: border-box;
+        border-radius: 8px;
+        padding: var(--padding-container);
+        width: calc(50% - 5px);
+        margin: 0 0 11px 0;
+    }
+    & > section.fullwidth {
+		width: 100%;
+	}
+    
+    & > section > h2 {
+        font-size: 16px;
+        text-align: left;
+    }
+
+    & > section > h2 + div {
+        display: flex;
+        flex-wrap: wrap;
+
+    }
+
+    & > section > h2 + div > h5 {
+        font-weight: normal;
+        text-decoration: underline;
+        padding-right: 20px;
+        cursor: pointer;
+    }
+}
+
+
+
+#admin_response, #pwtdata_interface_response {
+    border: 1px solid #e7e7e7;
+    background: #fbfbfb;
+    border-radius: 8px;
+    margin: 0 var(--padding-container) 0 var(--padding-container);
+}
+
+
+#adminsection_aiask { 
+	& > .textareawrap {
+		& textarea {
+			width: 100%;
+			height: 212px;
+		}
+		padding-bottom: 20px;
+	}
+
+}
+
+
+</style>
+
+
+<header class="viewheader">
+    <div class="left" style="width: 65px;">
+        <img class="logo" src="/assets/media/logo-icon.svg" alt="pwtlogo" /><strong>&nbsp;</strong>
+    </div>
+	<div class="middle"><v-simplegreeting></v-simplegreeting> &nbsp;</div>
+    <div class="right">
+		${localStorage.getItem("id_token") ? html`
+			<a class="loginout" @click="${() => this.LogoutUser()}">logout</a>
+			` : html`
+			<a class="loginout" @click="${() => {
+        window.location.href = "/v/login";
+      }}">login</a>
+			`}
+    </div>
+</header>
+
+<div class="content">
+    <div style="text-align: center; padding-top: 30px;">
+
+		<!--
+		<div style="width: 400px;">
+			<c-in2 @update="${(e) => this.testing2(e)}" name="somename" label="Test" val="someval"></c-in2>
+			<c-in2 @update="${(e) => this.testing2(e)}" name="sometog" label="TestTog" val="true" type="toggle"></c-in2>
+			<c-in2 @update="${(e) => this.testing2(e)}" name="sometog" label="DogD" type="dselect" val="1" options="10 Gallon Increments:10,1 Gallon Increments:1"></c-in2>
+		</div>
+		-->
+
+		${!localStorage.getItem("id_token") ? html`<button style="cursor:pointer;padding: 8px 12px;background:white;border-radius:8px;border:1px solid lightgray;" class="loginout" @click="${() => {
+        window.location.href = "/v/login";
+      }}">login</button>` : ""}
+
+
+        ${localStorage.getItem("id_token") ? html`
+            <div style="display:flex; justify-content: space-evenly; align-items: center;">
+                <c-btn noanime @click="${() => $N.SwitchStation.NavigateTo("machines")}">View Machines</c-btn>
+                <c-btn noanime @click="${() => $N.SwitchStation.NavigateTo("setup_push_allowance")}">Notification Subscription</c-btn>
+                <c-btn noanime @click="${() => $N.SwitchStation.NavigateTo("notifications")}">Employee Notifications</c-btn>
+            </div>
+
+
+            <br><br>
+
+			<!--
+            <h2>Reports</h2>
+            <br><br>
+			-->
+
+			<!--
+            <select id="report_month_meters">
+                <option value="2024,5" selected="true">May 2024</option>
+                <option value="2024,6">June 2024</option>
+                <option value="2024,7">July 2024</option>
+            </select>
+			-->
+            <!--
+            <select id="report_month_meters">
+                ${_s.report_month_meters.map((item, i) => html`
+                <option value="${item.year},${item.month}" ?selected="${i === 0}">${_s.month_names[item.month]} ${item.year}</option>
+                `)}
+            </select>
+            -->
+			<!--
+            <c-btn noanime @click="${(e) => this.run_report_month_meters(e.target)}">Download Month Meters Report</c-btn>
+			-->
+            ` : ""}
+
+            <br><br><br><br>
+			<!--<a href="https://localhost:3003/index.html?update_init=1">Run Update</a>-->
+            <p>&nbsp;</p>
+            <p>&nbsp;</p>
+
+
+        ${localStorage.getItem("user_email") === "accounts@risingtiger.com" || localStorage.getItem("user_email") === "cdonnelly@freshpure.com" || localStorage.getItem("user_email") === "robert@purewater-tech.com" ? html`
+            <div class="adminsection">
+                <section id="adminsection_aiask" class="fullwidth">
+
+                    <h2>Admin AiAsk</h2>
+
+                    <div class="textareawrap">
+						<textarea id="aiask_textarea"></textarea>
+                    </div>
+
+				<p>hit enter to send. For now, questions are hard coded to <strong>WinCo Gresham</strong></p>
+				<p>Since Gresham has a lot of after filter errors, an interesting question would be something about the average duration of after filter warning state</p>
+
+                </section> 
+			</div>
+		` : ""}
+
+        ${localStorage.getItem("user_email") === "accounts@risingtiger.com" && window.location.href.includes("localhost") ? html`
+
+            <div class="adminsection">
+
+                <section id="adminsection_reports">
+
+					<h5 @click="${() => this.get_reverse_geo_code_zip_state()}">get_reverse_geo_code_zip_state</h5>
+
+                    <h2>Admin Reports</h2>
+
+                    <div>
+                        <h5 @click="${() => this.adminetc("particle/chipsinfo")}">particle chips info</h5>
+                        <h5 @click="${() => this.adminetc("particle/data_usage")}">particle data usage</h5>
+                        <h5 @click="${() => this.adminetc("reconcile/between_particle_and_machines")}">reconcile particle and firestore</h5>
+                        <h5 @click="${() => this.adminetc("status_resend_counts")}">status resend counts</h5>
+                        <h5 @click="${() => this.adminetc("cell_locations")}">cell locations</h5>
+                    </div>
+
+                </section> 
+
+                <section id="adminsection_reports">
+
+                    <h2>Admin Logs</h2>
+
+                    <div>
+                        <h5 @click="${() => this.get_logs()}">Get Logs</h5>
+                    </div>
+
+                </section> 
+
+                <section id="adminsection_actions">
+
+                    <h2>Admin Actions</h2>
+
+                    <div>
+                        <h5 @click="${() => this.adminetc("savelocations")}">save locations</h5>
+                        <h5 @click="${() => this.adminetc("firestore_misc_add")}">firestore_misc_add</h5>
+                        <h5 @click="${() => this.adminetc("firestore_misc_update")}">firestore_misc_update</h5>
+                        <h5 @click="${() => this.adminetc("firestore_misc_get")}">firestore_misc_get</h5>
+                        <h5 @click="${() => this.adminetc("influxdb_misc_add")}">influxdb_misc_add</h5>
+                    </div>
+
+                </section> 
+
+                <section id="adminsection_test">
+
+                    <h2>Admin Test</h2>
+
+                    <div>
+						<h5 @click="${() => this.adminetc("test/sse", "GET", null, { trigger: 4, path: "machines" })}">SSE Collection</h5>
+						<h5 @click="${() => this.adminetc("test/sse", "GET", null, { trigger: 2, path: "machines/Qp1T2SYG3LQzJS9ffEtA" })}">SSE Doc</h5>
+						<h5 @click="${() => this.adminetc("test/pushnotifications", "GET", null)}">Push Notifications</h5>
+					<h5 @click="${() => this.adminetc("test/email", "GET", null, { title: "Test Title", body: "Email Test From App", tags: "testing,errors" })}">Email</h5>
+                    </div>
+
+                </section> 
+
+                <section id="adminsection_pwtdata_interface">
+
+                    <h2>Admin PWTDATA Interface</h2>
+
+                    <div>
+                        <h5 @click="${() => this.pwtdata_interfaceetc("getstore?pwtdataid=9759", "GET")}">pwtdata getstore</h5>
+                        <h5 @click="${() => this.pwtdata_interfaceetc("updatestorelist", "GET")}">pwtdata update store list</h5>
+                        <h5 @click="${() => this.pwtdata_interfaceetc("sync_all_machines", "GET")}">pwtdata sync all machines</h5>
+						<!--
+                        <h5 @click="${() => this.pwtdata_interfaceetc("client/9569/sync", "PATCH", { chipID: "10", storeID: "1100010", machineID: "1100010", clientName: "DavisX Secondary", city: "Colorado City", state: "AZ", zip: "86021", latitude: "30.222", longitude: "-114.33" })}">pwtdata clientsync</h5>
+                        <h5 @click="${() => this.pwtdata_interfaceetc("clients/meters?client_ids=1100009,1100010&timerange=1714563120,1717068720", "GET")}">pwtdata client meters</h5>
+						-->
+                    </div>
+
+                </section> 
+
+            </div>
+
+
+            <div id="admin_response">
+                <p>${_s.admin_response_str}</p>
+            </div>
+
+            <div id="pwtdata_interface_response">
+                <p>${_s.pwtdata_interface_response_str}</p>
+            </div>
+            <!--
+
+            <br><br>
+            <a @click="${() => this.Admin_Firestore_Update_Collection_Docs()}">(Admin Firestore Update Collection Docs)</a>
+
+            <br><br>
+            <span>
+                <a @click="${() => this.Data_Usage("accounts_risingtiger_com")}">(Data Usage LLC)</a>
+                <a @click="${() => this.Data_Usage("rfs_risingtiger_com")}">(Data Usage East)</a>
+                <a @click="${() => this.Data_Usage("west_pwt_risingtiger_com")}">(Data Usage West)</a>
+            </span>
+
+            <br><br>
+            <a @click="${() => this.Status_Stats()}">(Status Stats)</a>
+
+            <br><br>
+            <a @click="${() => this.Misc_Quicky()}">(Quicky)</a>
+
+            <br><br>
+            <a @click="${() => this.Firestore_Admin_Misc_Get()}">(Firestore Admin Misc Get)</a>
+
+
+            <br><br>
+            <a @click="${() => this.Misc_Admin_Particle()}">(Misc Particle Admin)</a>
+
+            <br><br>
+            <a @click="${() => this.location_match()}">(Location Match)</a>
+
+            <br><br>
+            <a @click="${() => this.WebPush_Send_Msg()}">(Send Test Notification)</a>
+
+            <br><br>
+            <a @click="${() => this.RunAdminAPI("listen_test_trigger")}">(Listen Test Trigger)</a>
+
+
+            <br><br>
+            PWTDataSync
+
+            <br><br>
+            <a @click="${() => this.RunAdminAPI("pwtdata/getmachines_for_sync")}">(PWTData Get Machines For Sync)</a>
+
+            <br><br>
+            <a @click="${() => this.RunAdminAPI("pwtdata/sync")}">(PWTData Sync)</a>
+            -->
+
+        ` : ""}
+
+    </div>
+
+    <p class="appupdatedate">App Update Date -- ${new Date(APPUPDATE_TS * 1e3).toLocaleDateString()} -- ${new Date(APPUPDATE_TS).toLocaleTimeString()} </p>
+
+</div>
+
+
+`;
+    };
+  };
+  customElements.define("v-home", VHome);
+})();

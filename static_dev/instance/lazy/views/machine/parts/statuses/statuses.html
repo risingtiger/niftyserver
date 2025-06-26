@@ -1,0 +1,108 @@
+
+
+
+<div class="statusheader">
+  <div id="auxheaderspace_a">
+    <div>&nbsp;</div>
+	<div @click="${()=>this.Switch_Time_Zone()}"><strong>Timezone</strong><br>${_s.timezone == 'Denver' ? 'Salt Lake' : _s.timezone}</div>
+
+	<div><strong>Store</strong><br>${ _m.meters_grand_totals[0]}</div>
+	<div><strong>Pure</strong><br>${  _m.meters_grand_totals[1]}</div>
+	<div><strong>Min</strong><br>${   _m.meters_grand_totals[2]}</div>
+  </div>
+
+  <div class="rotate">
+    <div><div><span>After Filter</span></div></div>
+    <div><div><span>Disp Pwr</span></div></div>
+    <div><div><span>Drip Pan</span></div></div>
+    <div><div><span>Sump</span></div></div>
+    <div><div><span>Tank</span></div></div>
+    <div><div><span>UV Bulb</span></div></div>
+    <div><div><span>Proc Pwr</span></div></div>
+    <div><div><span>Nozzle</span></div></div>
+    <div><div><span>LoRa MIA</span></div></div>
+    <div><div><span>Door</span></div></div>
+  </div>
+</div>
+
+<ul class="statuses">
+
+    <li style="background:none;height: 19px;">
+        <aside></aside>
+
+        <div class="statuses">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </li>
+
+    ${!_m.daygroups.length ? html`
+        <li style="background:none;height: 19px;">
+            There are no statuses yet
+        </li>
+    ` : html``}
+
+    ${_m.daygroups.map(dg=> html`
+
+        ${dg.statuses.map(s=> html`
+            <li>
+
+              <aside>
+				<div class="datetime type_${s.type}  ${s.is_startup ? 'is_resend' : ''}">${s.datestr}&nbsp${s.timestr}</div>
+
+                <div class="gallons">
+                  <div><span>${s.meters.get('Store')}</span></div>
+                  <div><span>${s.meters.get('Pure1')}</span><span>◉</span><span>${s.meters.get('Pure2')}</span></div>
+                  <div><span>${s.meters.get('Mineral1')}</span><span>◉</span><span>${s.meters.get('Mineral2')}</span></div>
+                </div>
+              </aside>
+
+
+              <div class="statuses">
+                <div>${Lit_UnsafeHtml(s.indicators.afltlw)}</div>
+                <div>${Lit_UnsafeHtml(s.indicators.dsppwr)}</div>
+                <div>${Lit_UnsafeHtml(s.indicators.drppan)}</div>
+                <div>${Lit_UnsafeHtml(s.indicators.smpovr)}</div>
+                <div>${Lit_UnsafeHtml(s.indicators.tnklvl)}</div>
+                <div>${Lit_UnsafeHtml(s.indicators.uvblb)}</div>
+                <div>${Lit_UnsafeHtml(s.indicators.procpwr)}</div>
+                <div>${Lit_UnsafeHtml(s.indicators.nzl)}</div>
+                <div>${Lit_UnsafeHtml(s.indicators.loramia)}</div>
+                <div>${Lit_UnsafeHtml(s.indicators.srvdr)}</div>
+              </div>
+
+            </li>
+        `)}   
+
+        <li class="totalsrow">
+
+          <aside>
+
+            <div class="datetime"><span></span><span>daily approx.</span></div>
+
+            <div class="gallons">
+              <div>${dg.summary.meters.get("Store")}</div>
+              <div>${dg.summary.meters.get("Pure1") + dg.summary.meters.get("Pure2")}</div>
+              <div>${dg.summary.meters.get("Mineral1") + dg.summary.meters.get("Mineral2")}</div>
+            </div>
+
+          </aside>
+
+          <div class="statuses"></div>
+        </li>
+
+    `)}
+
+</ul>
+
+
+
+

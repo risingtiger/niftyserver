@@ -1,0 +1,14 @@
+
+#findchip {
+    display: none;
+}
+#findchip.active {
+    display: block;
+}
+
+#addchip {
+    display: none;
+}
+#addchip.active {
+    display: block;
+}

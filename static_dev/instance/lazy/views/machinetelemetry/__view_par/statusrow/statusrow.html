@@ -1,0 +1,13 @@
+
+
+<div class="statusrow">
+    <div class="groups">
+        ${_s.groups.map((sg)=> html`
+            <div class="group" style="left:${sg.placement}%;">
+                <img src="/assets/media/bubble_${sg.badge}.svg">
+            </div>
+        `)}   
+    </div>
+</div>
+
+

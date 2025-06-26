@@ -1,0 +1,96 @@
+
+
+<div id="types">
+	<div id="type_alltime" class="${_s.mode == 'alltime' ? 'selected slimmer' : 'slimmer'}" @click="${() => this.setToAllTime()}">
+		<div class="wrap">
+			<h4>Meters - All Time</h4>
+			<p>&nbsp;</p>
+		</div>		
+	</div>
+
+	<div id="type_monthtodate" class="${_s.mode == 'monthtodate' ? 'selected slimmer' : 'slimmer'}" @click="${() => this.setToMonthToDate()}">
+		<div class="wrap">
+			<h4>Meters - MTD</h4>
+			<p>&nbsp;</p>
+		</div>
+	</div>
+
+	<div id="type_month" class="${_s.mode == 'month' ? 'selected' : ''}" @click="${(e) => this.handleTypeMonthClick(e)}">
+		<div class="wrap">
+			<h4>Meters - Month</h4>
+			<p>
+				<c-dselect 
+					id="select_month" 
+					options="Choose Month:-1,${_s.months.map((m,i)=>m.label+':'+i).join(',')}" 
+					val="-1"
+					@changed="${(e)=>this.setToMonth(e.detail)}"
+					@click="${(e) => e.stopPropagation()}"
+				></c-dselect>
+			</p>
+		</div>
+	</div>
+
+	<div id="type_custom" class="${_s.mode == 'custom' ? 'selected' : ''}">
+		<div class="wrap">
+			<h4>Meters - Date Range</h4>
+			<div class="dateselector">
+				<div class="dateselector_row">
+					<span>start</span>
+					<input type="date" id="startday" name="startday" value="${_s.startday}" @change="${(e) => this.updateStartDayFromInput(e)}">
+				</div>
+				<div class="dateselector_row">
+					<span>end</span>
+					<input type="date" id="endday" name="endday" value="${_s.endday}" @change="${(e) => this.updateEndDayFromInput(e)}">
+				</div>
+				<div class="dateselector_row">
+					<span>&nbsp;</span>
+					<c-btn @click="${() => this.handleCustomReport()}" noanime>Run Report</c-btn>
+				</div>
+			</div>
+		</div>		
+	</div>
+</div>
+
+
+<div id="results">
+	<ul class="items">
+		${_s.meters_report.map((meter, index) => _s.reconcile_mode ?
+			html`
+			<li class="meter-item">
+				<h5>${this.getMeterLabel(index)}</h5>
+				<p>${meter.toLocaleString()}</p>
+				<p>	
+					set new total: <input type="number" name="new_reconcile_meter_${index}" value="${meter}" @change="${(e) => this.meterInputChanged(e, index)}" />
+				</p>
+			</li>
+			` :
+			html`
+			<li @click="${(e) => this.meterRowClicked(e)}" data-meterindex="${index}">
+				<h5>${this.getMeterLabel(index)}</h5>
+				<p>${meter.toLocaleString()} gallons</p>
+				<i class="icon-copy action bolder"></i>
+			</li>
+			`
+		)}
+	</ul>
+</div>
+
+
+<div id="actionbuttons">
+	${_s.reconcile_mode ? 
+
+		html`
+			<div class="buttonrow">
+				<p @click="${()=> this.reconcileCancelClicked()}">cancel &nbsp; </p>
+				<c-btn primary @btnclick="${(e) => this.reconcileSaveClicked(e)}" noanime>Save New Reconcile</c-btn>
+			</div>
+		` :
+
+		html`
+			<div class="buttonrow">
+				<c-btn @btnclick="${(e) => this.reconcileClicked(e)}" noanime>Reconcile Meters</c-btn>
+			</div>
+		`}
+</div>
+
+

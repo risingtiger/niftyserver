@@ -1,0 +1,282 @@
+{ "MAIN": {
+  "INFO": {
+    "localdb_objectstores": [
+      {"name": "localdbsync_pending_sync_operations"},
+      {"name": "pending_logs"}
+    ]
+  },
+  "LAZYLOADS": [
+	  {
+		"type": "view",
+		"urlmatch": "^appmsgs$",
+		"name": "appmsgs",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "view",
+		"urlmatch": "^login$",
+		"name": "login",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "view",
+		"urlmatch": "^setup_push_allowance$",
+		"name": "setup_push_allowance",
+		"is_instance": false,
+		"dependencies": [
+		  { "type": "component", "name": "ol" },
+		  { "type": "component", "name": "btn" }
+		],
+		"auth": ["admin", "store_manager", "scanner"]
+	  },
+	  {
+		"type": "component",
+		"name": "graphing",
+		"is_instance": false,
+		"dependencies": [{ "type": "thirdparty", "name": "chartist" }],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "ol2",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "ol",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "pol",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "tl",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "reveal",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "dselect",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "in",
+		"is_instance": false,
+		"dependencies": [
+		  { "type": "component", "name": "dselect" },
+		  { "type": "component", "name": "animeffect" }
+		],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "in2",
+		"is_instance": false,
+		"dependencies": [
+		  { "type": "component", "name": "dselect" },
+		  { "type": "component", "name": "animeffect" }
+		],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "animeffect",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "toast",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "component",
+		"name": "btn",
+		"is_instance": false,
+		"dependencies": [
+		  { "type": "component", "name": "animeffect" }
+		],
+		"auth": []
+	  },
+	  {
+		"type": "thirdparty",
+		"name": "chartist",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  },
+	  {
+		"type": "lib",
+		"name": "testlib",
+		"is_instance": false,
+		"dependencies": [],
+		"auth": []
+	  }
+	]
+}
+, "INSTANCE": {
+  "INFO": {
+    "name": "INSTANCE_NAME",
+	"shortname": "pwt",
+    "firebase": {
+      "project": "purewatertech",
+      "identity_platform_key": "AIzaSyCdBd4FDBCZbL03_M4k2mLPaIdkUo32giI",
+      "dbversion": 14
+    },
+    "localdb_objectstores": [
+      {"name": "machines"}
+    ]
+  },
+  "LAZYLOADS": [
+    {
+      "type": "view",
+      "urlmatch": "home",
+      "name": "home",
+      "is_instance": true,
+      "dependencies": [
+        {"type": "component", "name": "in2"},
+        {"type": "component", "name": "btn"},
+        {"type": "component", "name": "toast"}
+      ],
+      "auth": []
+    },
+    {
+      "type": "view",
+      "urlmatch": "^machines$",
+      "name": "machines",
+      "is_instance": true,
+      "dependencies": [
+        {"type": "component", "name": "ol"},
+        {"type": "component", "name": "ol2"},
+        {"type": "component", "name": "pol"},
+        {"type": "component", "name": "in"},
+        {"type": "component", "name": "dselect"},
+        {"type": "component", "name": "btn"},
+        {"type": "component", "name": "toast"},
+        {"type": "component", "name": "metersreport"},
+        {"type": "component", "name": "machinedetails"},
+        {"type": "component", "name": "machinemap"}
+      ],
+      "auth": ["user", "admin", "store_manager", "scanner"],
+      "localdb_preload": ["machines"]
+    },
+    {
+      "type": "view",
+      "urlmatch": "^machines/:id$",
+      "name": "machine",
+      "is_instance": true,
+      "dependencies": [
+        {"type": "component", "name": "ol"},
+        {"type": "component", "name": "reveal"},
+        {"type": "component", "name": "in"},
+        {"type": "component", "name": "dselect"},
+        {"type": "component", "name": "btn"},
+        {"type": "component", "name": "toast"},
+        {"type": "component", "name": "metersreport"},
+        {"type": "component", "name": "machinedetails"},
+        {"type": "component", "name": "machinemap"}
+      ],
+      "auth": ["user", "admin", "store_manager", "scanner"],
+      "localdb_preload": ["machines"]
+    },
+    {
+      "type": "view",
+      "urlmatch": "^machines/:id/telemetry$",
+      "name": "machinetelemetry",
+      "is_instance": true,
+      "dependencies": [
+        {"type": "component", "name": "graphing"},
+        {"type": "component", "name": "ol"},
+        {"type": "component", "name": "toast"}
+      ],
+      "auth": ["user", "admin", "store_manager", "scanner"],
+      "localdb_preload": ["machines"]
+    },
+    {
+      "type": "view",
+      "urlmatch": "^notifications$",
+      "name": "notifications",
+      "is_instance": true,
+      "dependencies": [
+        {"type": "component", "name": "ol"},
+        {"type": "component", "name": "btn"},
+        {"type": "component", "name": "in"},
+        {"type": "component", "name": "reveal"},
+        {"type": "component", "name": "toast"}
+      ],
+      "auth": ["user", "admin", "store_manager", "scanner"]
+    },
+    {
+      "type": "view",
+      "urlmatch": "tradeup",
+      "name": "tradeup",
+      "is_instance": true,
+      "dependencies": [
+        {"type": "thirdparty", "name": "chartist"},
+        {"type": "component", "name": "btn"},
+        {"type": "component", "name": "toast"}
+      ],
+      "auth": ["admin"]
+    },
+    {
+      "type": "component",
+      "name": "metersreport",
+      "is_instance": true,
+      "dependencies": [
+        {"type": "component", "name": "dselect"},
+        {"type": "component", "name": "btn"},
+        {"type": "component", "name": "in"},
+        {"type": "component", "name": "toast"}
+      ],
+      "auth": []
+    },
+    {
+      "type": "component",
+      "name": "machinedetails",
+      "is_instance": true,
+      "dependencies": [
+        {"type": "component", "name": "btn"},
+        {"type": "component", "name": "toast"}
+      ],
+      "auth": []
+    },
+    {
+      "type": "component",
+      "name": "machinemap",
+      "is_instance": true,
+      "dependencies": [
+        {"type": "component", "name": "btn"},
+        {"type": "component", "name": "toast"}
+      ],
+      "auth": []
+    }
+  ]
+}
+ }

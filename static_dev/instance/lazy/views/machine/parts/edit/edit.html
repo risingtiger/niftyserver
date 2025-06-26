@@ -1,0 +1,105 @@
+
+<c-in label="Is Active" name="isactive" type="toggle" val="${_m.machine.state.active ? 'true' : 'false'}" @update="${(e)=>this.updateprop(e)}"></c-in>
+<!--<c-in label="Brand" name="brand" type="dselect" options="${_m.brands.map(m=>m+':'+m)}" val="${_m.machine.store.brand || 'NONE'}" @update="${(e)=>this.updateprop(e)}"></c-in>-->
+<c-in label="Brand" name="brand" type="text" val="${_m.machine.store.brand || 'NONE'}" @update="${(e)=>this.updateprop(e)}"></c-in>
+
+<ul class="items">
+
+
+	<li @click="${()=>this.getstorelist()}">
+		<h5>Store Assignment:</h5>
+		<p>${ _m.machine.pwtdataid === "0000000" ? 'NONE' : (_m.machine.store.brand ? (_m.machine.store.brand + ' ' + _m.machine.store.city + ', ' + _m.machine.store.state) : _m.machine.store.name)  }</p>
+
+		<div class="actions">
+			<i class="action bolder icon-edit1"></i>
+		</div>
+
+		<c-reveal id="store_assign">
+
+			${_m.machine.pwtdataid !== "0000000" ? html`<div class="alreadyassigned">Already Assigned</div>` : html`
+
+			<span class="justinput search">
+				<i class="icon-search"></i>
+				<input type="text" placeholder="Search Store Names" value="" @input="${(e)=>this.search_store_name_changed(e.target.value)}">
+		   </span>
+
+			<div id="storelist">
+				${_s.matching_stores.map(i=>html`
+					<div class="storeitem" @click="${(e)=>this.attach_store(e)}" data-pwtdataid="${i.id}">
+						<p><span>#${i.storeid}</span> ${i.name}</p> 
+						<p>${i.city}, ${i.state}</p>
+					</div>
+				`)}
+			</div>
+		`}
+
+	</c-reveal>
+   </li>
+
+
+
+    <li>
+        <h5>Meter Increments:</h5>
+        <p>${_m.machine.incrs[0]}, ${_m.machine.incrs[1]}, ${_m.machine.incrs[2]}, ${_m.machine.incrs[3]}, ${_m.machine.incrs[4]}</p>
+        <i class="action bolder icon-edit1"></i>
+
+        <c-reveal id="increments">
+
+			<c-in label="Store" name="incrs_store" type="dselect" val="${_m.machine.incrs[0]}" options="10 Gallon Increments:10,1 Gallon Increments:1" @update="${(e)=>this.updateprop(e)}"></c-in>
+			<c-in label="Pure 1" name="incrs_pure1" type="dselect" val="${_m.machine.incrs[1]}" options="10 Gallon Increments:10,1 Gallon Increments:1" @update="${(e)=>this.updateprop(e)}"></c-in>
+			<c-in label="Mineral 1" name="incrs_min1" type="dselect" val="${_m.machine.incrs[2]}" options="10 Gallon Increments:10,1 Gallon Increments:1" @update="${(e)=>this.updateprop(e)}"></c-in>
+			<c-in label="Pure 2"  name="incrs_pure2" type="dselect" val="${_m.machine.incrs[3]}" options="10 Gallon Increments:10,1 Gallon Increments:1" @update="${(e)=>this.updateprop(e)}"></c-in>
+			<c-in label="Mineral 2" name="incrs_min2" type="dselect" val="${_m.machine.incrs[4]}" options="10 Gallon Increments:10,1 Gallon Increments:1" @update="${(e)=>this.updateprop(e)}"></c-in>
+
+        </c-reveal>
+    </li>
+
+	<li>
+		<br><br><br><br>
+		<br><br><br><br>
+		<br><br><br><br>
+	</li>
+</ul>
+
+
+
+  <div class="savingstate_bg ${_s.savingState === 1 || _s.savingState === 2 ? 'active' : ''}"></div>
+
+  <div class="savingstate spinnerhldr ${_s.savingState === 1 ? 'active' : ''}">
+    <div class="spinner">
+      <div class="spinner-container container1">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+      </div>
+      <div class="spinner-container container2">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+      </div>
+      <div class="spinner-container container3">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+      </div>
+    </div>
+    <h4>Saving...</h4>
+  </div>
+
+
+  <div class="savingstate check ${_s.savingState === 2 ? 'active' : ''}">
+    <div class="checkcircle">
+      <i class="icon-checkcircle"></i>
+    </div>
+
+    <h4>Saved</h4>
+  </div>
+
+
+
+
+
+

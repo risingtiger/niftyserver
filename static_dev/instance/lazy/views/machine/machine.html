@@ -1,0 +1,70 @@
+
+
+<!-- -- -->
+<header class="viewheader">
+    <a class="left" @click="${()=>$N.SwitchStation.NavigateBack({default:'machines'})}"><span>‸</span></a>
+    <div class="middle">
+        <h1>
+			${_m.machine.store.brand ? (_m.machine.store.brand + ' ' + _m.machine.store.city + ', ' + _m.machine.store.state) : _m.machine.store.name}
+		</h1>
+    </div>
+    <div class="right">
+		<i class="icon-info"  @click="${()=>{ this.show_details(); }}" style=""></i>
+		<i class="icon-edit1"  @click="${()=>{ this.show_edit(); }}" style=""></i>
+		<i class="icon-meter"  @click="${()=>{ this.show_metersreport(); }}" style=""></i>
+		<i class="icon-location"  @click="${()=>{ this.show_map(); }}" style=""></i>
+		<i class="icon-graph"  @click="${()=>{ this.show_telemetry(); }}" style=""></i>
+        <c-dselect id="actions_menu" type="menu" options="${localStorage.getItem("user_email") === 'accounts@risingtiger.com' ? 'Machine Details:details,Edit Machine:edit,Show Map:map,Show Telemetry:telemetry,Meters Report:metersreport' : 'Machine Details:details,Show Map:map,Show Telemetry:telemetry,Meters Report:metersreport'}" val="" @changed="${(e)=>this.actions_menu_selected(e)}"><span slot="instigator"><i class="icon-tripledot" style=""></i></span></c-dselect>
+    </div>
+</header>
+
+
+<div class="content">
+
+	<!--
+	<h5 @click="${()=>$N.FetchLassie(`/api/pwt/reports/meters_timerange?machine_record_id=${_machine.id}&daystart=${'2024-05-01'}&dayend=${'2024-06-01'}`)}">Temp Meters TimeRange</h5>
+	<h5 @click="${()=>$N.FetchLassie(`/api/pwt/reports/meters_alltime?machine_record_id=${_machine.id}`)}">Temp Meters AllTime</h5>
+	-->
+
+    <vp-machine-statuses></vp-machine-statuses>
+
+</div>
+
+
+
+
+${ _s.show_details !== 0 ? html`
+    <c-ol shape="1" title="Machine Details" @close="${()=> this.sc({show_details:0}) }">
+        <vp-machine-details machine_record_id="${_m.machine.id}"></vp-machine-details>
+    </c-ol>
+` : ''}
+
+
+
+
+${ _s.show_edit !== 0 ? html`
+    <c-ol shape="1" title="Edit Machine" @close="${()=> this.editdone() }">
+        <vp-machine-edit></vp-machine-edit>
+    </c-ol>
+` : '' }
+
+
+
+
+${ _s.show_map !== 0 ? html`
+    <c-ol shape="1" title="Location" @close="${()=> this.sc({show_map:0}) }">
+        <vp-machine-map machine_record_id="${_m.machine.id}"></vp-machine-map>
+    </c-ol>
+` : '' }
+
+
+
+
+${ _s.show_metersreport !== 0 ? html`
+	<c-ol shape="1" title="${_m.machine.store.brand ? (_m.machine.store.brand + ' ' + _m.machine.store.city + ', ' + _m.machine.store.state) : _m.machine.store.name}" @close="${()=> this.sc({show_metersreport:0}) }">
+		<vp-metersreport machine_record_id="${_m.machine.id}" machine_incrs="${_m.machine.incrs}" machine_ts="${_m.machine.ts}"></vp-metersreport>
+    </c-ol>
+` : '' }
+
+
+
