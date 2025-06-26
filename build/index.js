@@ -20,7 +20,7 @@ import Logger from "./logger.js";
 import Emailing from "./emailing.js";
 import INSTANCE from './instance/index.js' 
 const STATIC_PREFIX = "static_";
-const APPVERSION = 3668;
+const APPVERSION = 3669;
 const VAR_NODE_ENV = process.env.NODE_ENV || 'dev';
 const VAR_PORT = process.env["NIFTY_INSTANCE_" + INSTANCE.INSTANCEID.toUpperCase() + "_PORT"] || process.env.PORT || "8080";
 const VAR_OFFLINEDATE_DIR = VAR_NODE_ENV === "dev" && process.env.NIFTY_OFFLINEDATA_DIR;
