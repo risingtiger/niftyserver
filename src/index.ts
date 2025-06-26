@@ -37,7 +37,7 @@ const APPVERSION=0;
 
 
 const VAR_NODE_ENV        = process.env.NODE_ENV || 'dev';
-const VAR_PORT            = process.env["NIFTY_INSTANCE_"+INSTANCE.INSTANCEID.toUpperCase()+"_PORT"] || process.env.PORT;
+const VAR_PORT            = process.env["NIFTY_INSTANCE_"+INSTANCE.INSTANCEID.toUpperCase()+"_PORT"] || process.env.PORT || "8080";
 const VAR_OFFLINEDATE_DIR = VAR_NODE_ENV === "dev" && process.env.NIFTY_OFFLINEDATA_DIR
 
 let   _json_configs = {}

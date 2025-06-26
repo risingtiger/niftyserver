@@ -1,5 +1,6 @@
 
 .aider*
+.claude*
 node_modules/
 .vscode/
 build/

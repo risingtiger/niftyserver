@@ -89,6 +89,7 @@ const getview_base_path = (lazyload:any) => {
 
 
 const get_all_lazyload_dependencies = (all_lazyloads:any, lazyload:any, static_prefix:str, paths_list:string[]) => {
+	debugger
 
 	for (const dep of lazyload.dependencies) {
 
