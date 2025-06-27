@@ -19,7 +19,7 @@ const INITIAL_CHECK_CONNECTIVITY_INTERVAL = 5000;
 const MAX_CHECK_CONNECTIVITY_INTERVAL = 5 * 60 * 1000; // 5 minutes max backoff
 const EXITDELAY = 9000 // just the default. can be overridden in the fetch request
 ;
-let _cache_name = 'cacheV__3669__';
+let _cache_name = 'cacheV__3674__';
 let _cache_version = Number(_cache_name.split("__")[1]);
 let _id_token = "";
 let _token_expires_at = 0;

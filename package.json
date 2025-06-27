@@ -12,7 +12,8 @@
     "devdebug": "NODE_ENV=dev nodemon --inspect --watch ./build ./build/index.js",
     "dist": "NODE_ENV=dist node ./build/index.js",
     "distdebug": "NODE_ENV=dist node --inspect ./build/index.js",
-    "test": "mocha --require ts-node/register --require test/setup.ts 'test/**/*.test.ts'"
+    "test": "mocha --require ts-node/register --require test/setup.ts 'test/**/*.test.ts'",
+    "distgcloud": "NODE_ENV=gcloud node ./build/index.js"
   },
   "nodemonConfig": {
     "delay": 2500

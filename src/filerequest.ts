@@ -1,6 +1,6 @@
 
 
-import { str } from './defs.js'
+import { str, bool } from './defs.js'
 import fsp from "fs/promises";
 
 
@@ -12,14 +12,14 @@ import * as path_util from "path";
 
 
 
-function runit(fileurl:str, res:any, env:str, static_prefix:str, nocache:boolean = true)  {   return new Promise(async (resolve, _reject) => {
+function runit(fileurl:str, res:any, static_dir:str, is_prod:bool, nocache:boolean = true)  {   return new Promise(async (resolve, _reject) => {
 
 	if (nocache)
 		res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
     let path = fileurl.replace("/assets/", "");
 
-    let absolute_prefix = process.cwd() + "/" + static_prefix + (env === "dev" ? "dev/" : "dist/");
+    let absolute_prefix = process.cwd() + "/" + static_dir;
 
     let extension = path_util.extname(path);
     extension = extension === "" ? ".html" : extension;
@@ -47,11 +47,11 @@ function runit(fileurl:str, res:any, env:str, static_prefix:str, nocache:boolean
             break;
 
         case ".js":
-            js(absolute_prefix, path, extension, env, res)
+            js(absolute_prefix, path, extension, is_prod, res)
             break;
 
         case ".css": 
-            css(absolute_prefix, path, extension, env, res)
+            css(absolute_prefix, path, extension, is_prod, res)
             break;
 
         case ".png":
@@ -96,13 +96,27 @@ function runit(fileurl:str, res:any, env:str, static_prefix:str, nocache:boolean
 
 
 
-async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:any) {
+async function js(absolute_path:str, jspath:str, jsextension:str, is_prod:bool, res:any) {
 
     const path_without_extension = jspath.substring(0, jspath.length - jsextension.length)
 
     res.set('Content-Type', 'application/javascript; charset=UTF-8');
 
-    if (env === "dev") {
+    if (is_prod) {
+
+        let is_br_file = await fs.promises.access(absolute_path + path_without_extension + `${jsextension}.br`).then(()=> true).catch(()=> false)
+
+        if (is_br_file) {
+            jspath = path_without_extension + `${jsextension}.br`
+            res.set('Content-Encoding', 'br');
+
+        } else {
+            jspath = path_without_extension + `${jsextension}`
+        }
+
+        res.sendFile(absolute_path + jspath);
+
+	} else {   
 
 		const is_lazy       = jspath.includes("lazy/")
 		const is_component  = jspath.includes("/components/")
@@ -132,20 +146,6 @@ async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:a
 		} else {
 			res.sendFile(absolute_path + jspath);
 		}
-
-	} else if (env === 'dist' || env === 'gcloud') {   
-
-        let is_br_file = await fs.promises.access(absolute_path + path_without_extension + `${jsextension}.br`).then(()=> true).catch(()=> false)
-
-        if (is_br_file) {
-            jspath = path_without_extension + `${jsextension}.br`
-            res.set('Content-Encoding', 'br');
-
-        } else {
-            jspath = path_without_extension + `${jsextension}`
-        }
-
-        res.sendFile(absolute_path + jspath);
 	}
 }
 
@@ -153,16 +153,11 @@ async function js(absolute_path:str, jspath:str, jsextension:str, env:str, res:a
 
 
 
-async function css(absolute_path:str, csspath:str, cssextension:str, env:str, res:any) {
+async function css(absolute_path:str, csspath:str, cssextension:str, is_prod:bool, res:any) {
 
 	res.set('Content-Type', 'text/css; charset=UTF-8');
 
-	if (env === "dev") {
-		csspath = absolute_path + csspath
-		res.sendFile(csspath)
-	}
-
-	else if(env === "dist" || env === "gcloud") { 
+	if (is_prod) {
 
 		const path_without_extension = csspath.substring(0, csspath.length - cssextension.length)
 
@@ -176,6 +171,14 @@ async function css(absolute_path:str, csspath:str, cssextension:str, env:str, re
 		}
 
 		res.sendFile(csspath);
+
+	}
+
+	else { 
+
+		csspath = absolute_path + csspath
+		res.sendFile(csspath)
+
 	}
 }
 

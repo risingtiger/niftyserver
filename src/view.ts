@@ -10,6 +10,9 @@ const BASEPATH = process.cwd() + '/'
 
 const HandlePath = (viewpath:str, static_prefix:str, nodeenv:str, json_configs:any) => new Promise<{returnstr:string,viewname:str}>(async (resolve, reject) => {
 
+	// THIS BE DONE FUCKED TOO
+	if (nodeenv === "gcloud/") nodeenv = "dist/";
+
 	const promises:Promise<string>[] = []
 
 	let r = {} as any

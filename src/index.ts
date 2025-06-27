@@ -29,14 +29,22 @@ import Emailing from "./emailing.js"
 declare var INSTANCE:ServerInstanceT // for LSP only
 
 
+
+//BASING PATHS OFF OF VAR_NODE_ENV done fucked a lot. fixer
+
+
+
+
+
 //{--index_instance.js--} 
 
-
-const STATIC_PREFIX = "static_";
-const APPVERSION=0; 
-
-
 const VAR_NODE_ENV        = process.env.NODE_ENV || 'dev';
+
+const STATIC_DIR = VAR_NODE_ENV === "dev" ? "static_dev/" : "static_dist/"
+const APPVERSION=0; 
+const IS_PROD = VAR_NODE_ENV === "dev" ? false : true
+
+
 const VAR_PORT            = process.env["NIFTY_INSTANCE_"+INSTANCE.INSTANCEID.toUpperCase()+"_PORT"] || process.env.PORT || "8080";
 const VAR_OFFLINEDATE_DIR = VAR_NODE_ENV === "dev" && process.env.NIFTY_OFFLINEDATA_DIR
 
@@ -77,13 +85,13 @@ app.get([
 
 
 app.get("/favicon.ico", (_req:any, res:any) => {
-	res.sendFile(process.cwd() + "/" + STATIC_PREFIX + (VAR_NODE_ENV === "dev" ? "dev/" : "dist/") + '/media/pwticons/favicon.ico')
+	res.sendFile(process.cwd() + "/" + STATIC_DIR + '/media/pwticons/favicon.ico')
 })
 app.get("/apple-touch-icon.png", (_req:any, res:any) => {
-	res.sendFile(process.cwd() + "/" +  STATIC_PREFIX + (VAR_NODE_ENV === "dev" ? "dev/" : "dist/") + '/media/pwticons/apple-touch-icon.png')
+	res.sendFile(process.cwd() + "/" +  STATIC_DIR + '/media/pwticons/apple-touch-icon.png')
 })
 app.get("/apple-touch-icon-precomposed.png", (_req:any, res:any) => {
-	res.sendFile(process.cwd() + "/" +  STATIC_PREFIX + (VAR_NODE_ENV === "dev" ? "dev/" : "dist/") + '/media/pwticons/apple-touch-icon-precomposed.png')
+	res.sendFile(process.cwd() + "/" +  STATIC_DIR + '/media/pwticons/apple-touch-icon-precomposed.png')
 })
 
 app.get([
@@ -138,7 +146,7 @@ app.get("/api/push_subscriptions/remove", push_subscriptions_remove)
 
 
 //app.get(['/index.html','/','/entry/*file'], entry)
-app.get(['/index.html','/'], (req, res) => {
+app.get(['/index.html','/'], (_req, res) => {
 	res.redirect(301, '/v/home')
 })
 
@@ -161,7 +169,7 @@ async function assets_general(req:any, res:any) {
 	if (req.url.includes("shared_worker.js")) debugger;
 	const fileurl = req.url
 	const nocache = !req.url.includes("shared_worker.js")
-    FileRequest.runit(fileurl, res, VAR_NODE_ENV, STATIC_PREFIX, nocache);
+    FileRequest.runit(fileurl, res, VAR_NODE_ENV, STATIC_DIR, IS_PROD, nocache);
 }
 
 
@@ -511,7 +519,10 @@ async function serveview(req:any, res:any) {
 
 async function init() { return new Promise(async (res, _rej)=> {
 
-	const jsonconfigcontents = fs.readFileSync(process.cwd() + "/" + STATIC_PREFIX + VAR_NODE_ENV + "/main.json", 'utf8')
+	//THIS BE DONE FUCKED
+	const _______replace_this_dog_with_unfucked_one = VAR_NODE_ENV === "gcloud" ? "dist" : VAR_NODE_ENV
+
+	const jsonconfigcontents = fs.readFileSync(process.cwd() + "/" + STATIC_PREFIX + _______replace_this_dog_with_unfucked_one + "/main.json", 'utf8')
 	_json_configs = JSON.parse(jsonconfigcontents)
 
 	parse_json_configs(_json_configs)
