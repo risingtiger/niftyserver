@@ -169,7 +169,7 @@ async function assets_general(req:any, res:any) {
 	if (req.url.includes("shared_worker.js")) debugger;
 	const fileurl = req.url
 	const nocache = !req.url.includes("shared_worker.js")
-    FileRequest.runit(fileurl, res, VAR_NODE_ENV, STATIC_DIR, IS_PROD, nocache);
+    FileRequest.runit(fileurl, res, STATIC_DIR, IS_PROD, nocache);
 }
 
 
@@ -478,7 +478,7 @@ async function serveview(req:any, res:any) {
 	const path_str = restofpath.join("/")
 
 	try {
-		const { returnstr, viewname } = await View.HandlePath(path_str, STATIC_PREFIX, VAR_NODE_ENV + "/", _json_configs)
+		const { returnstr, viewname } = await View.HandlePath(path_str, STATIC_DIR, _json_configs)
 		rstr = returnstr
 		res.set('View-Name', viewname)
 		//res.status(200).send(returnstr)
@@ -519,10 +519,7 @@ async function serveview(req:any, res:any) {
 
 async function init() { return new Promise(async (res, _rej)=> {
 
-	//THIS BE DONE FUCKED
-	const _______replace_this_dog_with_unfucked_one = VAR_NODE_ENV === "gcloud" ? "dist" : VAR_NODE_ENV
-
-	const jsonconfigcontents = fs.readFileSync(process.cwd() + "/" + STATIC_PREFIX + _______replace_this_dog_with_unfucked_one + "/main.json", 'utf8')
+	const jsonconfigcontents = fs.readFileSync(process.cwd() + "/" + STATIC_DIR + "/main.json", 'utf8')
 	_json_configs = JSON.parse(jsonconfigcontents)
 
 	parse_json_configs(_json_configs)
@@ -664,7 +661,7 @@ function parse_json_configs(json_configs:any) {
 
         let regex_pattern = lazyload.urlmatch;
 
-        regex_pattern = regex_pattern.replace(/\/:[a-z0-9A-Z_]+/g, (match:str) => {
+        regex_pattern = regex_pattern.replace(/\/:[a-z0-9A-Z_]+/g, (_match:str) => {
             return '/[a-zA-Z0-9_]+';
         });
 

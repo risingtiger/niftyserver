@@ -8,16 +8,13 @@ const BASEPATH = process.cwd() + '/'
 
 
 
-const HandlePath = (viewpath:str, static_prefix:str, nodeenv:str, json_configs:any) => new Promise<{returnstr:string,viewname:str}>(async (resolve, reject) => {
-
-	// THIS BE DONE FUCKED TOO
-	if (nodeenv === "gcloud/") nodeenv = "dist/";
+const HandlePath = (viewpath:str, static_dir:str, json_configs:any) => new Promise<{returnstr:string,viewname:str}>(async (resolve, reject) => {
 
 	const promises:Promise<string>[] = []
 
 	let r = {} as any
 
-	promises.push(fs.promises.readFile(BASEPATH + static_prefix + nodeenv + "index.html", 'utf8'))
+	promises.push(fs.promises.readFile(BASEPATH + static_dir + "index.html", 'utf8'))
 
 	try   { r = await Promise.all(promises) }
 	catch { reject(); return; }
@@ -36,7 +33,7 @@ const HandlePath = (viewpath:str, static_prefix:str, nodeenv:str, json_configs:a
 	let   view_base_path		   = getview_base_path(this_lazyload)
 
 	const dependencies_list:string[]      = []
-	get_all_lazyload_dependencies(all_lazyloads, this_lazyload, static_prefix, dependencies_list)
+	get_all_lazyload_dependencies(all_lazyloads, this_lazyload, static_dir, dependencies_list)
 	const dependencies_list_script_strs = dependencies_list.map((v) => `<script type="module" src="${v}" is_lazyload_asset="true"></script>`).join('\n')
 	
 
@@ -91,8 +88,7 @@ const getview_base_path = (lazyload:any) => {
 
 
 
-const get_all_lazyload_dependencies = (all_lazyloads:any, lazyload:any, static_prefix:str, paths_list:string[]) => {
-	debugger
+const get_all_lazyload_dependencies = (all_lazyloads:any, lazyload:any, static_dir:str, paths_list:string[]) => {
 
 	for (const dep of lazyload.dependencies) {
 
@@ -113,7 +109,7 @@ const get_all_lazyload_dependencies = (all_lazyloads:any, lazyload:any, static_p
 		paths_list.push(lazyref_path)
 
 		if (dep_lazyload.dependencies) {
-			get_all_lazyload_dependencies(all_lazyloads, dep_lazyload, static_prefix, paths_list)
+			get_all_lazyload_dependencies(all_lazyloads, dep_lazyload, static_dir, paths_list)
 		}
 	}
 }
