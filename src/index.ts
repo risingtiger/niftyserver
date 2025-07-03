@@ -2,6 +2,7 @@ import { str, ServerInstanceT, ServerMainsT } from "./defs.js"
 import fs from "fs";
 
 import express from "express";
+import multer from "multer";
 
 import bodyParser from 'body-parser'
 import cors from "cors";
