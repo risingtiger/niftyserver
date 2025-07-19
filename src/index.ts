@@ -144,11 +144,10 @@ app.get("/api/push_subscriptions/add",    push_subscriptions_add)
 app.get("/api/push_subscriptions/remove", push_subscriptions_remove)
 
 
-
-
-//app.get(['/index.html','/','/entry/*file'], entry)
-
-
+app.get(['/', '/index.html'], (req:any, res:any) => {
+    req.params.restofpath = ["home"]
+    serveview(req, res)
+})
 
 
 //app.get('/v/*mainpath/parts/*partname/*partfile', assets_general)
