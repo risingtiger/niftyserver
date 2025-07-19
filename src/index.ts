@@ -30,12 +30,12 @@ import Emailing from "./emailing.js"
 declare var INSTANCE:ServerInstanceT // for LSP only
 
 
-
 //BASING PATHS OFF OF VAR_NODE_ENV done fucked a lot. fixer
 
 
 
-
+const storage = multer.memoryStorage();
+const multer_upload = multer({ storage: storage });
 
 //{--index_instance.js--} 
 
@@ -147,9 +147,6 @@ app.get("/api/push_subscriptions/remove", push_subscriptions_remove)
 
 
 //app.get(['/index.html','/','/entry/*file'], entry)
-app.get(['/index.html','/'], (_req, res) => {
-	res.redirect(301, '/v/home')
-})
 
 
 
@@ -643,7 +640,8 @@ async function bootstrapit() {
 		influxdb:InfluxDB, 
 		emailing:Emailing,
 		sse:SSE,
-		validate_request
+		validate_request,
+		multer_upload
 	}
 
     INSTANCE.Set_Server_Mains(servermains)
@@ -673,6 +671,7 @@ function parse_json_configs(json_configs:any) {
 
 
 
+//@ts-ignore
 (process.openStdin()).addListener("data", async (a:any) => {
 
 	let data = (Buffer.from(a, 'base64').toString()).trim();
