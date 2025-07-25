@@ -14,6 +14,7 @@ import * as path_util from "path";
 
 function runit(fileurl:str, res:any, static_dir:str, is_prod:bool, nocache:boolean = true)  {   return new Promise(async (resolve, _reject) => {
 
+
 	if (nocache)
 		res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
@@ -141,6 +142,9 @@ async function js(absolute_path:str, jspath:str, jsextension:str, is_prod:bool, 
 
 				let jsstr = await fleshitout(absolute_path, path_without_extension, true)
 				res.send(jsstr)
+
+			} else  {
+				res.sendFile(absolute_path + jspath);
 			}
 
 		} else {
