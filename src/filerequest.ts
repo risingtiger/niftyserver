@@ -99,6 +99,7 @@ function runit(fileurl:str, res:any, static_dir:str, is_prod:bool, nocache:boole
 
 async function js(absolute_path:str, jspath:str, jsextension:str, is_prod:bool, res:any) {
 
+    const jspathspec = path_util.parse(jspath)
     const path_without_extension = jspath.substring(0, jspath.length - jsextension.length)
 
     res.set('Content-Type', 'application/javascript; charset=UTF-8');
