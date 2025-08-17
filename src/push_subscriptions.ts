@@ -49,10 +49,22 @@ async function Send_Msg(db:Firestore, title:str, body:str) {
 
 			const regtokens:any[] = []
 			all_users.forEach((u:any)=> {
-				if (u.fcm_token) {
-					regtokens.push(u.notifications.fcm_token)
+				if (!u.fcm_token) { return }
+
+				if (u.notifications?.alwaysnotify) {
+					regtokens.push(u.fcm_token);
+					return;
+				}
+
+				if (calculate_is_now_within_user_schedules(u)) {
+					regtokens.push(u.fcm_token);
 				}
 			})
+
+			if (regtokens.length === 0) {
+				res(1);
+				return;
+			}
 
 			const message  =  { data: { title, body }, tokens: regtokens }
 			await getMessaging().sendEachForMulticast(message)
@@ -62,6 +74,34 @@ async function Send_Msg(db:Firestore, title:str, body:str) {
 
 		catch (err) { rej(); }
 	})
+}
+
+
+
+
+function calculate_is_now_within_user_schedules(user:any) {
+
+	if (!user.notifications?.schedules) { return false; }
+
+	const now = Math.floor(Date.now() / 1000);
+
+	for (const schedule of user.notifications.schedules) {
+		const user_local_now = now + schedule.timezone_offset;
+		const seconds_into_interval = user_local_now % schedule.interval;
+		const end = schedule.start + schedule.duration;
+
+		if (end > schedule.interval) { // handles wrap-around intervals (e.g. Sat night to Sun morning)
+			if (seconds_into_interval >= schedule.start || seconds_into_interval < (end % schedule.interval)) {
+				return true;
+			}
+		} else {
+			if (seconds_into_interval >= schedule.start && seconds_into_interval < end) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 

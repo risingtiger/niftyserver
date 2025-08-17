@@ -1,0 +1,8 @@
+
+.aider*
+.claude*
+node_modules/
+static_dev/
+src/
+.vscode/
+**/.DS_Store

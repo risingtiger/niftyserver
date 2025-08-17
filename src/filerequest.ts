@@ -99,7 +99,9 @@ function runit(fileurl:str, res:any, static_dir:str, is_prod:bool, nocache:boole
 
 async function js(absolute_path:str, jspath:str, jsextension:str, is_prod:bool, res:any) {
 
-    const jspathspec = path_util.parse(jspath)
+	const split                  = jspath.split('/');
+	const filename               = split.length > 1 ? split.slice(-1)[0].split('.')[0] : null
+	const parent_dir_name        = split.length > 1 ? split.slice(-2)[0] : null
     const path_without_extension = jspath.substring(0, jspath.length - jsextension.length)
 
     res.set('Content-Type', 'application/javascript; charset=UTF-8');
@@ -120,14 +122,15 @@ async function js(absolute_path:str, jspath:str, jsextension:str, is_prod:bool, 
 
 	} else {   
 
-		const is_lazy       = jspath.includes("lazy/")
-		const is_component  = jspath.includes("/components/")
-		const is_view       = jspath.includes("/views/") && !jspath.includes("/parts/")
-		const is_view_part  = jspath.includes("/views/") && jspath.includes("/parts/")
+		const is_lazy         = jspath.includes("lazy/")
+		const is_component    = jspath.includes("/components/")
+		const is_view         = jspath.includes("/views/") && !jspath.includes("/parts/")
+		const is_view_part    = jspath.includes("/views/") && jspath.includes("/parts/")
+		const is_sibling      = ( is_component || is_view ) && !is_view_part && (filename && filename !== parent_dir_name)
 
 		if (is_lazy) {
 
-			if (is_component)  {
+			if (is_component && !is_sibling)  {
 
 				let jsstr = await fleshitout(absolute_path, path_without_extension, false)
 				res.send(jsstr)
@@ -143,6 +146,9 @@ async function js(absolute_path:str, jspath:str, jsextension:str, is_prod:bool, 
 
 				let jsstr = await fleshitout(absolute_path, path_without_extension, true)
 				res.send(jsstr)
+
+			} else if (is_sibling)  {
+				res.sendFile(absolute_path + jspath);
 
 			} else  {
 				res.sendFile(absolute_path + jspath);

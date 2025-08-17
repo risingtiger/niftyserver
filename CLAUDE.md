@@ -1,0 +1,1 @@
+/Users/dave/Code/llmresources/combined_conventions/A10_TYPESCRIPT_A20_SERVER.md

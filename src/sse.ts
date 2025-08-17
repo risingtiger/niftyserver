@@ -7,7 +7,7 @@ import { str  } from './defs.js'
 
 type ListenerT = {
     id:str,
-    cb:(trigger:number, obj:any)=>void,
+    cb:(trigger:string, obj:any)=>void,
 	endit:()=>void
 	checkit:()=>void
 }
@@ -35,8 +35,8 @@ function Add_Listener(req:any, res:any) {
 
     listeners.set(id, {
         id, 
-        cb: (trigger:number, data:any)=> {
-            res.write(`event: a_${trigger}\n`)
+        cb: (trigger:string, data:any)=> {
+            res.write(`event: ${trigger}\n`)
             res.write(`data: ${JSON.stringify(data)}\n`)
             res.write('\n')
         },
@@ -76,7 +76,7 @@ function Add_Listener(req:any, res:any) {
 
 
 
-function TriggerEvent(eventname:number, data:any, opts:{exclude?:str[]}={}) {
+function TriggerEvent(eventname:string, data:any, opts:{exclude?:str[]}={}) {
     listeners.forEach(l => {
         if (opts.exclude && opts.exclude.includes(l.id)) return;
 		l.cb(eventname, data)
@@ -86,7 +86,7 @@ function TriggerEvent(eventname:number, data:any, opts:{exclude?:str[]}={}) {
 
 
 
-function TriggerEventOne(eventname:number, sse_id:str, data:any) : boolean {
+function TriggerEventOne(eventname:string, sse_id:str, data:any) : boolean {
 	const listener = listeners.get(sse_id)
 	if (!listener) return false
 
@@ -150,3 +150,6 @@ process.on('SIGTERM', ()=> {
 });
 
 export default { Add_Listener, TriggerEvent, TriggerEventOne }
+
+
+

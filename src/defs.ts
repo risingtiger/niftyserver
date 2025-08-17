@@ -9,6 +9,7 @@ export type GenericRowT = { [key:string]: any }
 export type ServerMainsT = {
 	app:any, 
 	db:any, 
+	mdb: any,
 	appversion:number, 
 	sheets:any, 
 	gemini:any, 
@@ -17,7 +18,8 @@ export type ServerMainsT = {
 	influxdb:any, 
 	emailing:any,
 	sse:any,
-	validate_request:any
+	validate_request:any,
+	multer_upload: any
 };
 
 export type ServerInstanceT = {
@@ -28,6 +30,7 @@ export type ServerInstanceT = {
 	SHEETS_KEYJSONFILE:string, 
 	Set_Server_Mains:(m:ServerMainsT)=>void, 
 	Set_Routes:()=>void,
+	HandleCommandLineCommand:(data:str)=> void,
 }
 
 

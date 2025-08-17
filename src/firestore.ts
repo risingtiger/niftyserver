@@ -23,6 +23,7 @@ type PendingSyncOperationT = {
 
 function Retrieve(db:any, pathstr:str[], opts:RetrieveOptsT[]|null|undefined) {   return new Promise<null|Array<{[key:string]:any}[]>>(async (res, _rej) => {
 
+	debugger
     const promises:any = []
 
     if (!opts) opts = [{ order_by: null, ts: null, limit: null, startafter: null }];
@@ -87,7 +88,7 @@ function Retrieve(db:any, pathstr:str[], opts:RetrieveOptsT[]|null|undefined) { 
 
 
 
-function Add(db:any, sse:any, path:str, data:{[key:string]:any}, sse_id:str|null) {   return new Promise<null|number>(async (res, _rej)=> {
+function Add(db:any, sse:any, path:str, data:{[key:string]:any}, sse_id:str|null, suppress_sse:bool = false) {   return new Promise<null|number>(async (res, _rej)=> {
 
 	if (!data.id || data.ts) {  res(null); return; }
 
@@ -100,8 +101,8 @@ function Add(db:any, sse:any, path:str, data:{[key:string]:any}, sse_id:str|null
     const r = await doc_ref.add(data).catch(()=> null);
     if (r === null) { res(null); return; }
     
-    // Use the original newdoc with id for the event
-    sse.TriggerEvent(1, { path, data }, { exclude:[ sse_id ] });
+	const exclude = suppress_sse ? [sse_id] : [ ]
+    sse.TriggerEvent("datasync_doc_add", { path, data }, { exclude });
 
     res(1)
 })}
@@ -110,7 +111,7 @@ function Add(db:any, sse:any, path:str, data:{[key:string]:any}, sse_id:str|null
 
 
 type	 PatchReturnT = { code:0|1|10|11, data?:GenericRowT };
-function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|null) {   return new Promise<PatchReturnT>(async (res, _rej)=> {
+function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|null, suppress_sse:bool = false) {   return new Promise<PatchReturnT>(async (res, _rej)=> {
 
 	// code: 0 = transaction failed
 	// code: 1 = is ok
@@ -174,7 +175,8 @@ function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|nul
 				}
 			}
 			
-			sse.TriggerEvent(2, { path, data: merged_data }, { exclude:[ sse_id ] });
+			const exclude = suppress_sse ? [sse_id] : []
+			sse.TriggerEvent("datasync_doc_patch", { path, data: merged_data }, { exclude });
 		}
 
 		res(r);
@@ -187,7 +189,7 @@ function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|nul
 
 
 
-function Delete(db:any, sse:any, path:str, oldts:num, ts:num, sse_id:str|null) {   return new Promise<GenericRowT>(async (res, _rej)=> {
+function Delete(db:any, sse:any, path:str, oldts:num, ts:num, sse_id:str|null, suppress_sse:bool = false) {   return new Promise<GenericRowT>(async (res, _rej)=> {
 
     let doc_ref = parse_request(db, path, null);
 
@@ -217,7 +219,8 @@ function Delete(db:any, sse:any, path:str, oldts:num, ts:num, sse_id:str|null) {
 		});
 
 		if (r.code === 1) {
-			sse.TriggerEvent(3, { path, ts }, { exclude:[ sse_id ] });
+			const exclude = suppress_sse ? [sse_id] : [  ]
+			sse.TriggerEvent("datasync_doc_delete", { path, ts }, { exclude });
 		}
 
 		res(r);
@@ -351,7 +354,7 @@ const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_i
 
 		await batch.commit()
 
-		sse.TriggerEvent(4, { paths:all_collections }, { exclude:[ sse_id ] });
+		sse.TriggerEvent("datasync_collection", { paths:all_collections }, { exclude:[ sse_id ] });
 
 		res(true)
 	}

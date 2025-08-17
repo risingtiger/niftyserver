@@ -1,6 +1,7 @@
 import { str, ServerInstanceT, ServerMainsT } from "./defs.js"
 import fs from "fs";
 
+import mysql from "mysql2/promise"
 import express from "express";
 import multer from "multer";
 
@@ -50,6 +51,7 @@ const VAR_PORT            = process.env["NIFTY_INSTANCE_"+INSTANCE.INSTANCEID.to
 const VAR_OFFLINEDATE_DIR = VAR_NODE_ENV === "dev" && process.env.NIFTY_OFFLINEDATA_DIR
 
 let   _json_configs = {}
+let   mysql_pool: mysql.Pool | null = null;
 
 const app = express()
 
@@ -69,20 +71,10 @@ app.use(bodyParser.json())
 
 
 
-/*
-app.get([
-    '/app*.webmanifest$', 
-    '/assets/*\.js$',
-    '/assets/*\.css$', 
-    '/assets/media/*\.ico', 
-    '/assets/media/*\.png', 
-    '/assets/media/*\.gif', 
-    '/assets/media/*\.jpg', 
-    '/assets/media/*\.svg', 
-    '/assets/media/*\.woff2',
-    '/sw*.js$'
-], assets_general)
-*/
+app.get('/', (req:any, res:any) => {
+    req.params.restofpath = ["home"]
+    serveview(req, res)
+})
 
 
 app.get("/favicon.ico", (_req:any, res:any) => {
@@ -144,20 +136,11 @@ app.get("/api/push_subscriptions/add",    push_subscriptions_add)
 app.get("/api/push_subscriptions/remove", push_subscriptions_remove)
 
 
-app.get(['/', '/index.html'], (req:any, res:any) => {
-    req.params.restofpath = ["home"]
-    serveview(req, res)
-})
+
 
 
 //app.get('/v/*mainpath/parts/*partname/*partfile', assets_general)
 app.get('/v/*restofpath', serveview)
-
-
-
-
-
-
 
 
 
@@ -239,7 +222,9 @@ async function firestore_add(req:any, res:any) {
     if (! await validate_request(res, req)) return 
 
     const sse_id = req.headers['sse_id'] || null
-    const r = await Firestore.Add(db, SSE, req.body.path, req.body.data, sse_id)
+	const suppress_sse = req.body.suppress_sse || false 
+
+    const r = await Firestore.Add(db, SSE, req.body.path, req.body.data, sse_id, suppress_sse)
 	if (r === null) { res.statusMessage("unable to add firestore"); res.status(400).send(); return; }
 
 	res.status(200).send()
@@ -256,8 +241,9 @@ async function firestore_patch(req:any, res:any) {
 	const path    = req.body.path
 	const oldts   = req.body.oldtd
 	const newdata = req.body.newdata
+	const suppress_sse = req.body.suppress_sse || false 
 
-    const r = await Firestore.Patch(db, SSE, path, oldts, newdata, sse_id)
+    const r = await Firestore.Patch(db, SSE, path, oldts, newdata, sse_id, suppress_sse)
 	res.status(200).send(JSON.stringify(r))
 }
 
@@ -269,7 +255,8 @@ async function firestore_delete(req:any, res:any) {
     if (! await validate_request(res, req)) return 
 
 	const sse_id = req.headers['sse_id'] || null
-    const r = await Firestore.Delete(db, SSE, req.body.path, req.body.oldts, req.body.ts, sse_id)
+	const suppress_sse = req.body.suppress_sse || false
+    const r = await Firestore.Delete(db, SSE, req.body.path, req.body.oldts, req.body.ts, sse_id, suppress_sse)
 	if (r === null) { res.statusMessage("unable to delete firestore"); res.status(400).send(); return; }
 
 	res.status(200).send(JSON.stringify({ok: !r ? false : true}))
@@ -521,6 +508,23 @@ async function init() { return new Promise(async (res, _rej)=> {
 
 	parse_json_configs(_json_configs)
 
+	const db_config_base = {
+        user: process.env.GCP_SQL_USER,
+        password: process.env.GCP_SQL_PASSWORD,
+        database: process.env.GCP_SQL_DBNAME,
+		connectionLimit: 5,
+    };
+
+	if (VAR_NODE_ENV === "dev") {
+		mysql_pool = mysql.createPool({...db_config_base, host: 'localhost'});
+	} else {
+		console.log("you may have forgotten to set CLOUD_SQL_CONNECTION_NAME")
+		mysql_pool = mysql.createPool({
+			...db_config_base,
+			socketPath: `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`
+		});
+	}
+
     if ( (VAR_NODE_ENV === "dev" || VAR_NODE_ENV === "dist") && !VAR_OFFLINEDATE_DIR)  {
 
 		/*
@@ -595,9 +599,16 @@ function validate_request(res:any, req:any) {   return new Promise((promiseres)=
 	}
 
 	else {
-		const appversion = Number(req.headers.appversion)
+
+		const appversion = Number(req.headers["versionofapp"])
+
+
+		console.log("req.headers.versionofapp: ", req.headers["versionofapp"]);
+
 		
+		console.log("appversion: ", appversion , " APPVERSION: ", APPVERSION);
 		if (appversion !== APPVERSION) {
+			res.set('updaterequired', 'true')
 			res.status(410).send()
 			promiseres(false)
 			return false
@@ -631,6 +642,7 @@ async function bootstrapit() {
 	let servermains:ServerMainsT = {
 		app, 
 		db, 
+		mdb:mysql_pool,
 		appversion:APPVERSION, 
 		sheets, 
 		gemini:gemini,
@@ -673,7 +685,12 @@ function parse_json_configs(json_configs:any) {
 //@ts-ignore
 (process.openStdin()).addListener("data", async (a:any) => {
 
+	if (VAR_NODE_ENV !== "dev") return;
+
+
 	let data = (Buffer.from(a, 'base64').toString()).trim();
+
+	INSTANCE.HandleCommandLineCommand(data)
 
 	if (data == "start") {
 		bootstrapit()
@@ -683,9 +700,18 @@ function parse_json_configs(json_configs:any) {
 
 
 
+process.on('SIGTERM', async () => {
+    if (mysql_pool) {
+        await mysql_pool.end();
+    }
+});
+
+
+
 bootstrapit()
 
 
-
-
 export default app
+
+
+

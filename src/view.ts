@@ -93,6 +93,10 @@ const get_all_lazyload_dependencies = (all_lazyloads:any, lazyload:any, static_d
 	for (const dep of lazyload.dependencies) {
 
 		const dep_lazyload  = all_lazyloads.find((v:any) =>  v.name == dep.name)
+		if (!dep_lazyload) {
+			console.warn(`Lazyload dependency not found: ${dep.name} in ${lazyload.name}. You probably listed a dependency that does not exist.`);
+			throw new Error(`Lazyload dependency not found: ${dep.name} in ${lazyload.name}. You probably listed a dependency that does not exist.`);
+		}
 
 		let resofpath = "views/" // default
 		switch (dep_lazyload.type) {
@@ -108,7 +112,7 @@ const get_all_lazyload_dependencies = (all_lazyloads:any, lazyload:any, static_d
 
 		paths_list.push(lazyref_path)
 
-		if (dep_lazyload.dependencies) {
+		if (dep_lazyload.dependencies && dep_lazyload.dependencies.length > 0) {
 			get_all_lazyload_dependencies(all_lazyloads, dep_lazyload, static_dir, paths_list)
 		}
 	}
