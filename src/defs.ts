@@ -9,7 +9,7 @@ export type GenericRowT = { [key:string]: any }
 export type ServerMainsT = {
 	app:any, 
 	db:any, 
-	mdb: any,
+	pg:any,
 	appversion:number, 
 	sheets:any, 
 	gemini:any, 
@@ -18,6 +18,7 @@ export type ServerMainsT = {
 	influxdb:any, 
 	emailing:any,
 	sse:any,
+	csvutils:any,
 	validate_request:any,
 	multer_upload: any
 };

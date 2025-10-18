@@ -135,7 +135,7 @@ async function js(absolute_path:str, jspath:str, jsextension:str, is_prod:bool, 
 				let jsstr = await fleshitout(absolute_path, path_without_extension, false)
 				res.send(jsstr)
 
-			} else if (is_view)  {
+			} else if (is_view && !is_sibling)  {
 
 				let jsstr = await fleshitout(absolute_path, path_without_extension, true)
 				let view_parts_str = await get_view_parts_str(absolute_path, path_without_extension)

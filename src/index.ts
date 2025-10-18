@@ -1,20 +1,21 @@
+
+
 import { str, ServerInstanceT, ServerMainsT } from "./defs.js"
 import fs from "fs";
 
-import mysql from "mysql2/promise"
 import express from "express";
 import multer from "multer";
 
 import bodyParser from 'body-parser'
 import cors from "cors";
 
+import pg from 'pg'
+
 import { initializeApp, cert }  from "firebase-admin/app";
 import { getFirestore }  from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import {GoogleGenAI} from '@google/genai';
 import { google as googleapis } from "googleapis";
-//import { PubSub }     from "@google-cloud/pubsub";
-//import { authenticate } from "@google-cloud/local-auth";
 
 import zlib from 'node:zlib'
 
@@ -26,6 +27,7 @@ import FileRequest from "./filerequest.js"
 import View from "./view.js"
 import Logger from "./logger.js"
 import Emailing from "./emailing.js"
+import { CSVUtils } from "./csvutils.js"
 
 
 declare var INSTANCE:ServerInstanceT // for LSP only
@@ -34,6 +36,8 @@ declare var INSTANCE:ServerInstanceT // for LSP only
 //BASING PATHS OFF OF VAR_NODE_ENV done fucked a lot. fixer
 
 
+const { Pool } = pg
+const pgpool = new Pool();
 
 const storage = multer.memoryStorage();
 const multer_upload = multer({ storage: storage });
@@ -51,7 +55,6 @@ const VAR_PORT            = process.env["NIFTY_INSTANCE_"+INSTANCE.INSTANCEID.to
 const VAR_OFFLINEDATE_DIR = VAR_NODE_ENV === "dev" && process.env.NIFTY_OFFLINEDATA_DIR
 
 let   _json_configs = {}
-let   mysql_pool: mysql.Pool | null = null;
 
 const app = express()
 
@@ -239,7 +242,7 @@ async function firestore_patch(req:any, res:any) {
 
 	const sse_id  = req.headers['sse_id'] || null
 	const path    = req.body.path
-	const oldts   = req.body.oldtd
+	const oldts   = req.body.oldts
 	const newdata = req.body.newdata
 	const suppress_sse = req.body.suppress_sse || false 
 
@@ -403,6 +406,8 @@ async function logger_save(req:any, res:any) {
 
 async function logger_get(req:any, res:any) {
 
+    if (! await validate_request(res, req)) return 
+
 	const r = await Logger.Get(db, req.query.user_email)
 	if (!r) { res.status(400).send(); return; }
 
@@ -508,23 +513,6 @@ async function init() { return new Promise(async (res, _rej)=> {
 
 	parse_json_configs(_json_configs)
 
-	const db_config_base = {
-        user: process.env.GCP_SQL_USER,
-        password: process.env.GCP_SQL_PASSWORD,
-        database: process.env.GCP_SQL_DBNAME,
-		connectionLimit: 5,
-    };
-
-	if (VAR_NODE_ENV === "dev") {
-		mysql_pool = mysql.createPool({...db_config_base, host: 'localhost'});
-	} else {
-		console.log("you may have forgotten to set CLOUD_SQL_CONNECTION_NAME")
-		mysql_pool = mysql.createPool({
-			...db_config_base,
-			socketPath: `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`
-		});
-	}
-
     if ( (VAR_NODE_ENV === "dev" || VAR_NODE_ENV === "dist") && !VAR_OFFLINEDATE_DIR)  {
 
 		/*
@@ -592,7 +580,7 @@ async function startit() {
 
 
 
-function validate_request(res:any, req:any) {   return new Promise((promiseres)=> {
+function validate_request(res:any, req:any) {   return new Promise<boolean|object>((promiseres)=> {
 
 	if ( APPVERSION===0 ) {
 		promiseres(true)
@@ -620,8 +608,8 @@ function validate_request(res:any, req:any) {   return new Promise((promiseres)=
 		getAuth()
 			.verifyIdToken(id_token)
 
-			.then((_decodedToken) => {
-				promiseres(true)
+			.then((decodedToken) => {
+				promiseres(decodedToken)
 			})
 
 			.catch((_error) => {
@@ -642,7 +630,7 @@ async function bootstrapit() {
 	let servermains:ServerMainsT = {
 		app, 
 		db, 
-		mdb:mysql_pool,
+		pg:pgpool,
 		appversion:APPVERSION, 
 		sheets, 
 		gemini:gemini,
@@ -651,6 +639,7 @@ async function bootstrapit() {
 		influxdb:InfluxDB, 
 		emailing:Emailing,
 		sse:SSE,
+		csvutils:CSVUtils,
 		validate_request,
 		multer_upload
 	}
@@ -701,8 +690,8 @@ function parse_json_configs(json_configs:any) {
 
 
 process.on('SIGTERM', async () => {
-    if (mysql_pool) {
-        await mysql_pool.end();
+    if (pgpool) {
+		await pgpool.end()
     }
 });
 

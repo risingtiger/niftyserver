@@ -23,7 +23,6 @@ type PendingSyncOperationT = {
 
 function Retrieve(db:any, pathstr:str[], opts:RetrieveOptsT[]|null|undefined) {   return new Promise<null|Array<{[key:string]:any}[]>>(async (res, _rej) => {
 
-	debugger
     const promises:any = []
 
     if (!opts) opts = [{ order_by: null, ts: null, limit: null, startafter: null }];
@@ -74,12 +73,12 @@ function Retrieve(db:any, pathstr:str[], opts:RetrieveOptsT[]|null|undefined) { 
 		} 
 		else if (r[i].docs && r[i].docs.length) {
 			const docs = r[i].docs.map((doc:any)=> {
-				return parsedocdata(doc)
+				return parsedocdata_for_client({ id:doc.id, ...doc.data()})
 			})
 			returns.push(docs)
 		} 
 		else {
-			returns.push(parsedocdata(r[i]))
+			returns.push(parsedocdata_for_client({ id:r[i].id, ...r[i].data() }))
 		}
 	}
 	res(returns)
@@ -96,13 +95,13 @@ function Add(db:any, sse:any, path:str, data:{[key:string]:any}, sse_id:str|null
     let d = parse_request(db, path, null);
     const doc_ref = d.doc(data.id)
 
-	parse_data_to_update(db, data);
+	parsedocdata_from_client(db, data);
     
     const r = await doc_ref.add(data).catch(()=> null);
     if (r === null) { res(null); return; }
     
 	const exclude = suppress_sse ? [sse_id] : [ ]
-    sse.TriggerEvent("datasync_doc_add", { path, data }, { exclude });
+    sse.TriggerEvent("datasync_doc_add", { path, data:parsedocdata_for_client(data) }, { exclude });
 
     res(1)
 })}
@@ -121,6 +120,7 @@ function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|nul
 	// newdata should always have the ts field set from client side
 
     let doc_ref = parse_request(db, path, null);
+	let existingdata = {} as any
     
 	try {
 		const r = await db.runTransaction(async (transaction:any) => {
@@ -134,24 +134,24 @@ function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|nul
 				return { code:10, data }; 
 			}
 			
-			const existingdata = { id:docsnapshot.id,  ...docsnapshot.data() }
+			existingdata = { id:docsnapshot.id,  ...docsnapshot.data() }
 			
 			if (oldts < existingdata.ts) {   
 				data = { id: docsnapshot.id, ...existingdata };  
 				return { code:11, data };
 			}
 
-			parse_data_to_update(db, newdata);
+			parsedocdata_from_client(db, newdata);
 			
 			await transaction.update(doc_ref, newdata);
 			
 			data = { ...existingdata, ...newdata };
-			return { code:1, existingdata };	
+			return { code:1, data:{} };	
 		});
 
 		if (r.code === 1) {
 			// Merge newdata with existingdata, expanding dot notation properties
-			const merged_data = { ...r.existingdata }
+			const merged_data = { ...existingdata }
 			
 			for (const key in newdata) {
 				if (key.includes('.')) {
@@ -176,7 +176,9 @@ function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|nul
 			}
 			
 			const exclude = suppress_sse ? [sse_id] : []
-			sse.TriggerEvent("datasync_doc_patch", { path, data: merged_data }, { exclude });
+			const parsed_merged_data = parsedocdata_for_client(merged_data)
+			r.data = parsed_merged_data
+			sse.TriggerEvent("datasync_doc_patch", { path, data: parsed_merged_data }, { exclude });
 		}
 
 		res(r);
@@ -286,7 +288,7 @@ const GetBatch = (db:any, paths:str[], tses:number[], runid:str) => new Promise<
 			caller.isdones[i] = true
 		}
 
-		const docs   = o.docs.map((doc:any)=> parsedocdata(doc) )
+		const docs   = o.docs.map((doc:any)=> parsedocdata_for_client({ id:doc.id,...doc.data() }) )
 		const isdone = caller.isdones[i]
 		returns.push({ isdone, docs }) // docs array could be empty
 	}
@@ -317,7 +319,7 @@ const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_i
 			if (pending.operation_type === 'add') {
 				const new_doc_ref = collection_ref.doc()
 				const data_to_add = { ...pending.payload, ts: pending.ts }
-				const parsed_data = parse_data_to_update(db, data_to_add)
+				const parsed_data = parsedocdata_from_client(db, data_to_add)
 				
 				batch.set(new_doc_ref, parsed_data)
 			}
@@ -331,7 +333,7 @@ const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_i
 				if (existing_data.ts > pending.oldts!) continue
 
 				const data_to_patch = { ...pending.payload, ts: pending.ts }
-				const parsed_data = parse_data_to_update(db, data_to_patch)
+				const parsed_data = parsedocdata_from_client(db, data_to_patch)
 				
 				batch.set(doc_ref, parsed_data)
 			}
@@ -367,9 +369,8 @@ const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_i
 
 
 
-function parsedocdata(doc:any) {
-	const data = { id: doc.id, ...doc.data() }
-	
+function parsedocdata_for_client(data:GenericRowT) {
+
 	for (const key in data) {
 		const value = data[key]
 		// Check if value is not null/undefined and is an object
@@ -382,6 +383,26 @@ function parsedocdata(doc:any) {
 	}
 	
 	return data
+}
+
+
+
+
+function parsedocdata_from_client(db:any, data:any) {
+	for (const key in data) {
+		if (typeof data[key] === 'object') {
+			if (data[key].__path) {
+				const docref = db.collection(data[key].__path[0]).doc(data[key].__path[1]);
+				data[key] = docref;
+			}
+			else {
+				parsedocdata_from_client(db, data[key]);
+			}
+		}
+		else {
+			// leave untouched
+		}
+	}
 }
 
 
@@ -502,22 +523,6 @@ function parse_request(db:any, pathstr:str, ts:int|null) : any {
 
 
 
-function parse_data_to_update(db:any, data:any) {
-	for (const key in data) {
-		if (typeof data[key] === 'object') {
-			if (data[key].__path) {
-				const docref = db.collection(data[key].__path[0]).doc(data[key].__path[1]);
-				data[key] = docref;
-			}
-			else {
-				parse_data_to_update(db, data[key]);
-			}
-		}
-		else {
-			// leave untouched
-		}
-	}
-}
 /*
 const update_record_with_new_data = (record: GenericRowT, newdata: any): void => {
 	for (const key in newdata) {
