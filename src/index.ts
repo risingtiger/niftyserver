@@ -4,7 +4,6 @@ import { str, ServerInstanceT, ServerMainsT } from "./defs.js"
 import fs from "fs";
 
 import express from "express";
-import multer from "multer";
 
 import bodyParser from 'body-parser'
 import cors from "cors";
@@ -14,10 +13,8 @@ import pg from 'pg'
 import { initializeApp, cert }  from "firebase-admin/app";
 import { getFirestore }  from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
-import {GoogleGenAI} from '@google/genai';
 import { google as googleapis } from "googleapis";
 
-import zlib from 'node:zlib'
 
 import { Firestore } from "./firestore.js"
 import { InfluxDB } from "./influxdb.js"
@@ -25,9 +22,10 @@ import SSE from "./sse.js"
 import Push_Subscriptions from "./push_subscriptions.js"
 import FileRequest from "./filerequest.js"
 import View from "./view.js"
+import SelfExtractingBundle from "./self_extracting_bundle.js"
 import Logger from "./logger.js"
 import Emailing from "./emailing.js"
-import { CSVUtils } from "./csvutils.js"
+import Utils from "./utils.js"
 
 
 declare var INSTANCE:ServerInstanceT // for LSP only
@@ -39,8 +37,6 @@ declare var INSTANCE:ServerInstanceT // for LSP only
 const { Pool } = pg
 const pgpool = new Pool();
 
-const storage = multer.memoryStorage();
-const multer_upload = multer({ storage: storage });
 
 //{--index_instance.js--} 
 
@@ -61,9 +57,6 @@ const app = express()
 let db:any = null;
 
 let sheets:any = {};
-let gemini:any = {};
-//let pubsub:any;
-//let pubsub_local:any;
 
 
 
@@ -74,7 +67,7 @@ app.use(bodyParser.json())
 
 
 
-app.get('/', (req:any, res:any) => {
+app.get(['/','/index.html'], (req:any, res:any) => {
     req.params.restofpath = ["home"]
     serveview(req, res)
 })
@@ -105,13 +98,13 @@ app.post('/api/refresh_auth', refresh_auth)
 
 app.get('/api/reset_password', reset_password)
 
+app.get('/api/testdata', testdata)
 app.get('/api/ping', ping)
 app.post('/api/firestore_retrieve', firestore_retrieve)
 app.post('/api/firestore_add', firestore_add)
 app.post('/api/firestore_patch', firestore_patch)
 app.post('/api/firestore_delete', firestore_delete)
 app.post('/api/firestore_get_batch', firestore_get_batch)
-app.post('/api/firestore_sync_pending', firestore_sync_pending)
 
 
 
@@ -123,7 +116,6 @@ app.post('/api/influxdb_retrieve_medians', influxdb_retrieve_medians)
 
 
 
-//app.get("/api/sse_add_listener", cors({ origin: ['https://purewater.web.app'] }), sse_add_listener)
 app.options("/sse_add_listener", cors());
 app.get("/sse_add_listener",     cors(), sse_add_listener)
 
@@ -142,7 +134,6 @@ app.get("/api/push_subscriptions/remove", push_subscriptions_remove)
 
 
 
-//app.get('/v/*mainpath/parts/*partname/*partfile', assets_general)
 app.get('/v/*restofpath', serveview)
 
 
@@ -205,16 +196,7 @@ async function firestore_retrieve(req:any, res:any) {
 	if (r === null) { res.statusMessage("unable to retrieve firestore"); res.status(400).send(); return; }
 
     const jsoned = JSON.stringify(r)
-    zlib.brotliCompress(jsoned, {
-        params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
-            [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
-        },
-
-    }, (_err:any, result:any) => {
-        res.set('Content-Encoding', 'br');
-        res.status(200).send(result)
-    })
+    await Utils.Compress.Send(jsoned, res)
 }
 
 
@@ -224,11 +206,14 @@ async function firestore_add(req:any, res:any) {
 
     if (! await validate_request(res, req)) return 
 
-    const sse_id = req.headers['sse_id'] || null
-	const suppress_sse = req.body.suppress_sse || false 
+    const sse_id       = req.headers['sse_id'] || null
+	const suppress_sse = req.body.suppress_sse || false
+	const exclude      = suppress_sse ? [sse_id] : [ ]
 
-    const r = await Firestore.Add(db, SSE, req.body.path, req.body.data, sse_id, suppress_sse)
+    const r = await Firestore.Add(db, req.body.path, req.body.data)
 	if (r === null) { res.statusMessage("unable to add firestore"); res.status(400).send(); return; }
+
+    SSE.TriggerEvent("datasync_doc_add", { path: req.body.path, data:req.body.data }, { exclude });
 
 	res.status(200).send()
 }
@@ -240,14 +225,19 @@ async function firestore_patch(req:any, res:any) {
 
     if (! await validate_request(res, req)) return 
 
-	const sse_id  = req.headers['sse_id'] || null
-	const path    = req.body.path
-	const oldts   = req.body.oldts
-	const newdata = req.body.newdata
-	const suppress_sse = req.body.suppress_sse || false 
+	const sse_id       = req.headers['sse_id'] || null
+	const path         = req.body.path
+	const oldts        = req.body.oldts
+	const newdata      = req.body.newdata
+	const suppress_sse = req.body.suppress_sse || false
+	const exclude      = suppress_sse ? [sse_id] : []
 
-    const r = await Firestore.Patch(db, SSE, path, oldts, newdata, sse_id, suppress_sse)
+    const r = await Firestore.Patch(db, path, oldts, newdata)
 	res.status(200).send(JSON.stringify(r))
+
+	if (r.code === 1) {
+		SSE.TriggerEvent("datasync_doc_patch", { path, data: newdata }, { exclude });
+	}
 }
 
 
@@ -257,12 +247,16 @@ async function firestore_delete(req:any, res:any) {
 
     if (! await validate_request(res, req)) return 
 
-	const sse_id = req.headers['sse_id'] || null
+	const sse_id       = req.headers['sse_id'] || null
 	const suppress_sse = req.body.suppress_sse || false
-    const r = await Firestore.Delete(db, SSE, req.body.path, req.body.oldts, req.body.ts, sse_id, suppress_sse)
-	if (r === null) { res.statusMessage("unable to delete firestore"); res.status(400).send(); return; }
+	const exclude      = suppress_sse ? [sse_id] : []
 
-	res.status(200).send(JSON.stringify({ok: !r ? false : true}))
+    const r = await Firestore.Delete(db, req.body.path, req.body.oldts, req.body.ts)
+	res.status(200).send(JSON.stringify(r))
+
+	if (r.code === 1) {
+		SSE.TriggerEvent("datasync_doc_delete", { path:req.body.path }, { exclude });
+	}
 }
 
 
@@ -276,37 +270,8 @@ async function firestore_get_batch(req:any, res:any) {
 	if (!r) {  res.statusMessage("unable to get batch"); res.status(400).send(); return }
 
     const jsoned = JSON.stringify(r)
-    zlib.brotliCompress(jsoned, {
-        params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
-            [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
-        },
-
-    }, (_err:any, result:any) => {
-        res.set('Content-Encoding', 'br');
-        res.status(200).send(result)
-    })
+    await Utils.Compress.Send(jsoned, res)
 }
-
-
-
-
-async function firestore_sync_pending(req:any, res:any) {
-
-    if (! await validate_request(res, req)) return 
-
-	const sse_id = req.headers['sse_id'] || null
-
-	let r:any
-
-    try   { r = await Firestore.SyncPending(db, SSE, req.body, sse_id); }
-	catch {}
-
-	if (!r) {  res.status(400).send(); return }
-
-	res.status(200).send({})
-}
-
 
 
 
@@ -321,16 +286,7 @@ async function influxdb_retrieve_series(req:any, res:any) {
 	if (!results) { res.status(400).send(); return; }
 
     const jsoned = JSON.stringify(results)
-    zlib.brotliCompress(jsoned, {
-        params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
-            [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
-        },
-
-    }, (_err:any, result:any) => {
-        res.set('Content-Encoding', 'br');
-        res.status(200).send(result)
-    })
+    await Utils.Compress.Send(jsoned, res)
 }
 
 
@@ -346,16 +302,7 @@ async function influxdb_retrieve_points(req:any, res:any) {
 	if (!results) { res.status(400).send(); return; }
 
     const jsoned = JSON.stringify(results)
-    zlib.brotliCompress(jsoned, {
-        params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
-            [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
-        },
-
-    }, (_err:any, result:any) => {
-        res.set('Content-Encoding', 'br');
-        res.status(200).send(result)
-    })
+    await Utils.Compress.Send(jsoned, res)
 }
 
 
@@ -371,16 +318,7 @@ async function influxdb_retrieve_medians(req:any, res:any) {
 	if (!results) { res.status(400).send(); return; }
 
     const jsoned = JSON.stringify(results)
-    zlib.brotliCompress(jsoned, {
-        params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
-            [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
-        },
-
-    }, (_err:any, result:any) => {
-        res.set('Content-Encoding', 'br');
-        res.status(200).send(result)
-    })
+    await Utils.Compress.Send(jsoned, res)
 }
 
 
@@ -449,6 +387,14 @@ async function push_subscriptions_remove(req:any, res:any) {
 
 
 
+async function testdata(_req:any, res:any) {
+	const testdata = [{id:1, name:"Alice" }, {id:2, name:"Bob" }, {id:3, name:"Charlie" }, {id:4, name:"Diana" }, {id:5, name:"Ethan" }, {id:6, name:"Fiona" }, {id:7, name:"George" }, {id:8, name:"Hannah" }, {id:9, name:"Ian" }, {id:10, name:"Julia" }]
+    res.status(200).send(JSON.stringify(testdata))
+}
+
+
+
+
 async function ping(_req:any, res:any) {
     res.status(200).send()
 }
@@ -463,31 +409,40 @@ async function serveview(req:any, res:any) {
 	res.set('Content-Type', 'text/html; charset=UTF-8');
 	res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
 
-    const restofpath = req.params.restofpath ? req.params.restofpath : "home"
+	const restofpath = req.params.restofpath ? req.params.restofpath : "home"
 	const path_str = restofpath.join("/")
 
-	try {
-		const { returnstr, viewname } = await View.HandlePath(path_str, STATIC_DIR, _json_configs)
-		rstr = returnstr
-		res.set('View-Name', viewname)
-		//res.status(200).send(returnstr)
-	}
-	catch {
-		rstr = "Could not load view: " + path_str
-		res.status(400).send(rstr)
-		return
+	const self_extract = req.query.self_extract === 'true'
+
+	if (self_extract && IS_PROD) {
+		try {
+			const p = performance.now()
+			const { returnstr, viewname } = await SelfExtractingBundle.Handle(path_str, STATIC_DIR, _json_configs)
+			const pp = performance.now()
+			console.log(pp-p)
+			rstr = returnstr
+			res.set('View-Name', viewname)
+		} catch (e) {
+			rstr = "Could not load self-extracting bundle for view: " + path_str
+			res.status(400).send(rstr)
+			return
+		}
+	} else {
+		try {
+			const { returnstr, viewname } = await View.HandlePath(path_str, STATIC_DIR, _json_configs)
+			rstr = returnstr
+			res.set('View-Name', viewname)
+		} catch {
+			rstr = "Could not load view: " + path_str
+			res.status(400).send(rstr)
+			return
+		}
 	}
 
-
-    zlib.brotliCompress(rstr, {
-        params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
-            [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
-        },
-    }, (_err:any, result:any) => {
-        res.set('Content-Encoding', 'br');
-        res.status(200).send(result)
-    })
+	const pa = performance.now();
+	await Utils.Compress.Send(rstr, res)
+	const papa = performance.now();
+	console.log(papa-pa);
 }
 
 
@@ -552,7 +507,6 @@ async function init() { return new Promise(async (res, _rej)=> {
 	}
 
 	db     = getFirestore();
-	gemini = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
     res(1)
 })}
@@ -572,7 +526,7 @@ async function startit() {
 		const port_num = VAR_NODE_ENV === "dev" ? Number(VAR_PORT) : Number(VAR_PORT)+1
 
 		app.listen( port_num, () => {
-			console.info(`HTTP App version ( ${APPVERSION} ) listening on port ${(port_num)}`);
+			console.info(`APPVERSION: ${APPVERSION}. PORT: ${(port_num)}`);
 		})
     } 
 
@@ -582,7 +536,7 @@ async function startit() {
 
 function validate_request(res:any, req:any) {   return new Promise<boolean|object>((promiseres)=> {
 
-	if ( APPVERSION===0 ) {
+	if ( APPVERSION===0 && VAR_NODE_ENV === "dev") {
 		promiseres(true)
 	}
 
@@ -590,20 +544,20 @@ function validate_request(res:any, req:any) {   return new Promise<boolean|objec
 
 		const appversion = Number(req.headers["versionofapp"])
 
-
-		console.log("req.headers.versionofapp: ", req.headers["versionofapp"]);
-
-		
-		console.log("appversion: ", appversion , " APPVERSION: ", APPVERSION);
 		if (appversion !== APPVERSION) {
 			res.set('updaterequired', 'true')
 			res.status(410).send()
 			promiseres(false)
 			return false
 		}
-		
 
-		const id_token = req.headers.authorization?.substring(7, req.headers.authorization?.length);
+		const authHeader = req.headers.authorization;
+		if (!authHeader || !authHeader.startsWith('Bearer ')) {
+			res.status(401).send();
+			promiseres(false);
+			return;
+		}
+		const id_token = authHeader.substring(7);
 
 		getAuth()
 			.verifyIdToken(id_token)
@@ -633,15 +587,13 @@ async function bootstrapit() {
 		pg:pgpool,
 		appversion:APPVERSION, 
 		sheets, 
-		gemini:gemini,
 		push_subscriptions:Push_Subscriptions, 
 		firestore:Firestore, 
 		influxdb:InfluxDB, 
 		emailing:Emailing,
 		sse:SSE,
-		csvutils:CSVUtils,
+		utils:Utils,
 		validate_request,
-		multer_upload
 	}
 
     INSTANCE.Set_Server_Mains(servermains)

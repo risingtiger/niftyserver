@@ -1,0 +1,13 @@
+machine_id,status,lastupdate,machine_lat,machine_lon,store_lat,store_lon,distance,isatstore,isold,sourcedfrom,errmsg
+420,nogps,unknown,0,0,0,0,0.00,unknown,unknown,none,none
+421,ok,2025-12-09,45.450767,-122.576114,45.4434146,-122.5776815,0.45,true,false,particlenow,'none'}
+422,ok,2025-12-08,27.740431,-82.685134,27.7410707,-82.6793814,0.31,true,false,particlenow,'none'}
+423,ok,2025-06-04,40.770215,-111.915481,38.47539829999999,27.2244339,5544.62,false,true,particlenow,'none'}
+424,ok,2025-06-11,28.032859,-80.645382,28.037742,-80.652699,0.49,true,true,particlenow,'none'}
+425,ok,2025-12-09,42.254171,-83.65603,42.2492065,-83.6598329,0.34,true,false,particlenow,'none'}
+426,ok,2025-12-10,40.693286,-111.98208,0,0,-1.00,false,false,particlenow,'none'}
+427,ok,2025-08-18,41.711215,-86.187155,41.7101485,-86.1864598,0.07,true,true,particlenow,'none'}
+428,ok,2025-12-09,32.993702,-96.829426,32.991726,-96.8304929,0.13,true,false,particlenow,'none'}
+429,nogps,unknown,0,0,0,0,0.00,unknown,unknown,none,none
+430,ok,2025-12-10,36.269087,-115.212443,36.269749,-115.208198,0.21,true,false,particlenow,'none'}
+431,nogps,unknown,0,0,0,0,0.00,unknown,unknown,none,none

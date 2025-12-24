@@ -7,16 +7,16 @@ import { GenericRowT } from "./defs.js"
 
 type RetrieveOptsT   = { order_by:str|null, ts:int|null, limit:int|null, startafter: string|null }
 
-type OperationTypeT = 'add' | 'patch' | 'delete';
-type PendingSyncOperationT = {
-	id: str,
-	docid: str;
-	operation_type: OperationTypeT;
-	target_store: str;
-	ts: num;
-	oldts?: num;
-	payload: GenericRowT | null;
-};
+//type OperationTypeT = 'add' | 'patch' | 'delete';
+// type PendingSyncOperationT = {
+// 	id: str,
+// 	docid: str;
+// 	operation_type: OperationTypeT;
+// 	target_store: str;
+// 	ts: num;
+// 	oldts?: num;
+// 	payload: GenericRowT | null;
+// };
 
 
 
@@ -73,12 +73,12 @@ function Retrieve(db:any, pathstr:str[], opts:RetrieveOptsT[]|null|undefined) { 
 		} 
 		else if (r[i].docs && r[i].docs.length) {
 			const docs = r[i].docs.map((doc:any)=> {
-				return parsedocdata_for_client({ id:doc.id, ...doc.data()})
+				return ParseDocDataForClient({ id:doc.id, ...doc.data()})
 			})
 			returns.push(docs)
 		} 
 		else {
-			returns.push(parsedocdata_for_client({ id:r[i].id, ...r[i].data() }))
+			returns.push(ParseDocDataForClient({ id:r[i].id, ...r[i].data() }))
 		}
 	}
 	res(returns)
@@ -87,21 +87,21 @@ function Retrieve(db:any, pathstr:str[], opts:RetrieveOptsT[]|null|undefined) { 
 
 
 
-function Add(db:any, sse:any, path:str, data:{[key:string]:any}, sse_id:str|null, suppress_sse:bool = false) {   return new Promise<null|number>(async (res, _rej)=> {
+function Add(db:any, path:str, data:{[key:string]:any}) {   return new Promise<number|null>(async (res, _rej)=> {
+
+	let serverts = Math.round(Date.now())
 
 	if (!data.id || data.ts) {  res(null); return; }
 
+	if (data.ts < serverts - 5 || data.ts > serverts + 5) { res(null); return; }
 
     let d = parse_request(db, path, null);
     const doc_ref = d.doc(data.id)
 
-	parsedocdata_from_client(db, data);
-    
+	ConvertRefPathsFromClient(db, data);
+
     const r = await doc_ref.add(data).catch(()=> null);
     if (r === null) { res(null); return; }
-    
-	const exclude = suppress_sse ? [sse_id] : [ ]
-    sse.TriggerEvent("datasync_doc_add", { path, data:parsedocdata_for_client(data) }, { exclude });
 
     res(1)
 })}
@@ -109,48 +109,41 @@ function Add(db:any, sse:any, path:str, data:{[key:string]:any}, sse_id:str|null
 
 
 
-type	 PatchReturnT = { code:0|1|10|11, data?:GenericRowT };
-function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|null, suppress_sse:bool = false) {   return new Promise<PatchReturnT>(async (res, _rej)=> {
+type	 PatchReturnT = { code:0|1|10|11|12 };
+function Patch(db:any, path:str, oldts:num, newdata:any) {   return new Promise<PatchReturnT>(async (res, _rej)=> {
 
 	// code: 0 = transaction failed
 	// code: 1 = is ok
 	// code: 10 = is deleted or not exists
 	// code: 11 = is older data, send back newer data
+	// code: 12 = local ts and server ts is too far off
 
 	// newdata should always have the ts field set from client side
 
-    let doc_ref = parse_request(db, path, null);
-	let existingdata = {} as any
+	let serverts = Math.round(Date.now() / 1000)
+    let doc_ref  = parse_request(db, path, null);
+
+	if (newdata.ts < serverts - 5 || newdata.ts > serverts + 5) { res({ code:12 }); return; }
     
 	try {
 		const r = await db.runTransaction(async (transaction:any) => {
 
-			let data:GenericRowT = {}
-
 			const docsnapshot = await transaction.get(doc_ref);
 			
-			if (!docsnapshot.exists) {  
-				data = {};
-				return { code:10, data }; 
-			}
-			
-			existingdata = { id:docsnapshot.id,  ...docsnapshot.data() }
-			
-			if (oldts < existingdata.ts) {   
-				data = { id: docsnapshot.id, ...existingdata };  
-				return { code:11, data };
-			}
+			if (!docsnapshot.exists) {				return { code:10 };   }
+			if (oldts < (docsnapshot.data()).ts) {  return { code:11 };   }
 
-			parsedocdata_from_client(db, newdata);
+			ConvertRefPathsFromClient(db, newdata);
 			
-			await transaction.update(doc_ref, newdata);
+			await transaction.set(doc_ref, newdata);
 			
-			data = { ...existingdata, ...newdata };
-			return { code:1, data:{} };	
+			return { code:1 };	
 		});
 
+		res(r);
+
 		if (r.code === 1) {
-			// Merge newdata with existingdata, expanding dot notation properties
+			/*
 			const merged_data = { ...existingdata }
 			
 			for (const key in newdata) {
@@ -178,57 +171,43 @@ function Patch(db:any, sse:any, path:str, oldts:num, newdata:any, sse_id:str|nul
 			const exclude = suppress_sse ? [sse_id] : []
 			const parsed_merged_data = parsedocdata_for_client(merged_data)
 			r.data = parsed_merged_data
-			sse.TriggerEvent("datasync_doc_patch", { path, data: parsed_merged_data }, { exclude });
+			*/
 		}
-
-		res(r);
 	}
 	catch (error) {
-		res({ code:0, data:{} });
+		res({ code:0 });
 	}
 })}
 
 
 
 
-function Delete(db:any, sse:any, path:str, oldts:num, ts:num, sse_id:str|null, suppress_sse:bool = false) {   return new Promise<GenericRowT>(async (res, _rej)=> {
+function Delete(db:any, path:str, oldts:num, ts:num) {   return new Promise<GenericRowT>(async (res, _rej)=> {
 
-    let doc_ref = parse_request(db, path, null);
+    let doc_ref         = parse_request(db, path, null);
+	let split           = path.split("/")
+	let path_collection = split[0]
+	let doc_id          = split[1]
+	let serverts        = Math.round(Date.now() / 1000)
+
+	if (ts < serverts - 5 || ts > serverts + 5) { res({ code:12 }); return; }
 
 	try {
 		const r = await db.runTransaction(async (transaction:any) => {
 
-			let data:GenericRowT = {}
-
 			const docsnapshot = await transaction.get(doc_ref);
 			
-			if (!docsnapshot.exists) {  
-				data = {};
-				return { code:10, data }; 
-			}
-			
-			const existingdata = docsnapshot.data();
-			
-			if (oldts < existingdata.ts) {   
-				data = { id: docsnapshot.id, ...existingdata };  
-				return { code:11, data };
-			}
+			if (!docsnapshot.exists) {					return { code:10 };   }
+			if ((docsnapshot.doc()).ts >= oldts) {		return { code:11 };   }
 
-			existingdata.isdeleted = true;
-			await transaction.update(doc_ref, existingdata);
-			
-			return { code:1, data:{} };	
+			await transaction.delete(doc_ref);
+			await db.collection('__deleted_docs').doc().set({ collection:path_collection, docid:doc_id, ts });
+			return { code:1 };	
 		});
-
-		if (r.code === 1) {
-			const exclude = suppress_sse ? [sse_id] : [  ]
-			sse.TriggerEvent("datasync_doc_delete", { path, ts }, { exclude });
-		}
-
 		res(r);
 	}
 	catch (error) {
-		res({ code:0, data:{} });
+		res({ code:0 });
 	}
 })}
 
@@ -288,7 +267,7 @@ const GetBatch = (db:any, paths:str[], tses:number[], runid:str) => new Promise<
 			caller.isdones[i] = true
 		}
 
-		const docs   = o.docs.map((doc:any)=> parsedocdata_for_client({ id:doc.id,...doc.data() }) )
+		const docs   = o.docs.map((doc:any)=> ParseDocDataForClient({ id:doc.id,...doc.data() }) )
 		const isdone = caller.isdones[i]
 		returns.push({ isdone, docs }) // docs array could be empty
 	}
@@ -302,6 +281,10 @@ const GetBatch = (db:any, paths:str[], tses:number[], runid:str) => new Promise<
 
 
 
+
+/* **********************************************************
+      !!KEEP!!    I WANT TO CYCLE BACK TO THIS SOON 
+   **********************************************************
 
 const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_id:str|null) => new Promise<boolean>(async (res, rej)=> {
 
@@ -319,7 +302,7 @@ const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_i
 			if (pending.operation_type === 'add') {
 				const new_doc_ref = collection_ref.doc()
 				const data_to_add = { ...pending.payload, ts: pending.ts }
-				const parsed_data = parsedocdata_from_client(db, data_to_add)
+				const parsed_data = convert_refpaths_from_client(db, data_to_add)
 				
 				batch.set(new_doc_ref, parsed_data)
 			}
@@ -333,7 +316,7 @@ const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_i
 				if (existing_data.ts > pending.oldts!) continue
 
 				const data_to_patch = { ...pending.payload, ts: pending.ts }
-				const parsed_data = parsedocdata_from_client(db, data_to_patch)
+				const parsed_data = convert_refpaths_from_client(db, data_to_patch)
 				
 				batch.set(doc_ref, parsed_data)
 			}
@@ -356,7 +339,6 @@ const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_i
 
 		await batch.commit()
 
-		sse.TriggerEvent("datasync_collection", { paths:all_collections }, { exclude:[ sse_id ] });
 
 		res(true)
 	}
@@ -365,18 +347,27 @@ const SyncPending = (db:any, sse:any, all_pending:PendingSyncOperationT[], sse_i
 		rej(error)
 	}
 })
+*/
 
 
 
 
-function parsedocdata_for_client(data:GenericRowT) {
+function ParseDocDataForClient(data:GenericRowT) {
 
 	for (const key in data) {
 		const value = data[key]
 		// Check if value is not null/undefined and is an object
 		if (value && typeof value === 'object') {
-			// Then check for _path property
-			if (value._path) {
+			// Check if value is an array
+			if (Array.isArray(value)) {
+				for (let i = 0; i < value.length; i++) {
+					if (value[i] && value[i]._path) {
+						value[i] = { __path: value[i]._path.segments }
+					}
+				}
+			}
+			// Then check for _path property on object
+			else if (value._path) {
 				data[key] = { __path: value._path.segments }
 			}
 		}
@@ -388,15 +379,26 @@ function parsedocdata_for_client(data:GenericRowT) {
 
 
 
-function parsedocdata_from_client(db:any, data:any) {
+function ConvertRefPathsFromClient(db:any, data:any) {
 	for (const key in data) {
-		if (typeof data[key] === 'object') {
-			if (data[key].__path) {
-				const docref = db.collection(data[key].__path[0]).doc(data[key].__path[1]);
+		const value = data[key]
+		if (value && typeof value === 'object') {
+			// Check if value is an array
+			if (Array.isArray(value)) {
+				for (let i = 0; i < value.length; i++) {
+					if (value[i] && value[i].__path) {
+						const docref = db.collection(value[i].__path[0]).doc(value[i].__path[1]);
+						value[i] = docref;
+					}
+				}
+			}
+			// Then check for __path property on object
+			else if (value.__path) {
+				const docref = db.collection(value.__path[0]).doc(value.__path[1]);
 				data[key] = docref;
 			}
 			else {
-				parsedocdata_from_client(db, data[key]);
+				ConvertRefPathsFromClient(db, value);
 			}
 		}
 		else {
@@ -537,5 +539,5 @@ const update_record_with_new_data = (record: GenericRowT, newdata: any): void =>
 
 
 
-const Firestore = { Retrieve, Add, Patch, Delete, GetBatch, SyncPending }
-export { Firestore }
+const Firestore = { Retrieve, Add, Patch, Delete, GetBatch, ParseDocDataForClient, ConvertRefPathsFromClient }
+export { Firestore  }

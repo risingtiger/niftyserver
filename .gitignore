@@ -4,8 +4,10 @@
 node_modules/
 .vscode/
 build/
+target/
 static_dev/
 static_dist/
+
 
 
 

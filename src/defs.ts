@@ -12,15 +12,13 @@ export type ServerMainsT = {
 	pg:any,
 	appversion:number, 
 	sheets:any, 
-	gemini:any, 
 	push_subscriptions:any, 
 	firestore:any, 
 	influxdb:any, 
 	emailing:any,
 	sse:any,
-	csvutils:any,
+	utils:any,
 	validate_request:any,
-	multer_upload: any
 };
 
 export type ServerInstanceT = {
@@ -28,7 +26,6 @@ export type ServerInstanceT = {
 	PROJECTID:string, 
 	KEYJSONFILE:string, 
 	IDENTITY_PLATFORM_API:string,
-	SHEETS_KEYJSONFILE:string, 
 	Set_Server_Mains:(m:ServerMainsT)=>void, 
 	Set_Routes:()=>void,
 	HandleCommandLineCommand:(data:str)=> void,

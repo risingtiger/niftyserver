@@ -1,8 +1,17 @@
 
-.aider*
-.claude*
-node_modules/
-static_dev/
+# This is the .gcloudignore file
+.gcloudignore  # Ignore the ignore file itself
+.gitignore
+AGENTS.md
+target/
+test/
 src/
+
+node_modules/
 .vscode/
+static_dev/
+
+
+
 **/.DS_Store
+
