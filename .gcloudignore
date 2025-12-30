@@ -2,16 +2,14 @@
 # This is the .gcloudignore file
 .gcloudignore  # Ignore the ignore file itself
 .gitignore
+.git
 AGENTS.md
 target/
 test/
 src/
-
+uploads/
 node_modules/
 .vscode/
 static_dev/
-
-
-
 **/.DS_Store
 

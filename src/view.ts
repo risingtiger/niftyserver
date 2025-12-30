@@ -8,13 +8,17 @@ const BASEPATH = process.cwd() + '/'
 
 
 
-const HandlePath = (viewpath:str, static_dir:str, json_configs:any) => new Promise<{returnstr:string,viewname:str}>(async (resolve, reject) => {
+const HandlePath = (viewpath:str, static_dir:str, json_configs:any, is_prod:boolean) => new Promise<{returnstr:string,viewname:str}>(async (resolve, reject) => {
 
 	const promises:Promise<string>[] = []
 
 	let r = {} as any
 
 	promises.push(fs.promises.readFile(BASEPATH + static_dir + "index.html", 'utf8'))
+	if (is_prod) {
+		promises.push(fs.promises.readFile(BASEPATH + static_dir + "index.css", 'utf8'))
+		promises.push(fs.promises.readFile(BASEPATH + static_dir + "main.css", 'utf8'))
+	}
 
 	try   { r = await Promise.all(promises) }
 	catch { reject(); return; }
@@ -43,16 +47,25 @@ const HandlePath = (viewpath:str, static_dir:str, json_configs:any) => new Promi
 		<script type="module" src="/assets/${view_base_path}.js" is_lazyload_asset="true"></script>
 	`
 
-	const css_link_strs = `<link rel="stylesheet" href="/assets/index.css"></link>`
+	let css_str = ""
+	if (is_prod) {
+		const index_css_content = r[1]
+		const main_css_content = r[2]
+		css_str = `	<style>${index_css_content}</style>
+					<script>
+						const mainStyleSheet = new CSSStyleSheet();
+						mainStyleSheet.replaceSync(\`${main_css_content}\`);
+						window.maincss = mainStyleSheet;
+					</script>
+				   `
+	} else {
+		css_str = `<link rel="stylesheet" href="/assets/index.css"></link>`
+	}
 
-	const htmlstr = indexhtml.replace('<!--{--js_css--}-->', js_scripts_str + `\n\n\n` + css_link_strs)
+	const htmlstr = indexhtml.replace('<!--{--js_css--}-->', js_scripts_str + `\n\n\n` + css_str)
 
 	resolve({ returnstr: htmlstr, viewname:this_lazyload.name })	
 })
-
-
-
-
 
 
 

@@ -429,7 +429,7 @@ async function serveview(req:any, res:any) {
 		}
 	} else {
 		try {
-			const { returnstr, viewname } = await View.HandlePath(path_str, STATIC_DIR, _json_configs)
+			const { returnstr, viewname } = await View.HandlePath(path_str, STATIC_DIR, _json_configs, IS_PROD)
 			rstr = returnstr
 			res.set('View-Name', viewname)
 		} catch {
