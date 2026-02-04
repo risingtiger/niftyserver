@@ -27,8 +27,7 @@ export type ServerInstanceT = {
 	KEYJSONFILE:string, 
 	IDENTITY_PLATFORM_API:string,
 	Set_Server_Mains:(m:ServerMainsT)=>void, 
-	Set_Routes:()=>void,
-	HandleCommandLineCommand:(data:str)=> void,
+	Set_Routes:()=>void
 }
 
 

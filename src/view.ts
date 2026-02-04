@@ -18,6 +18,7 @@ const HandlePath = (viewpath:str, static_dir:str, json_configs:any, is_prod:bool
 	if (is_prod) {
 		promises.push(fs.promises.readFile(BASEPATH + static_dir + "index.css", 'utf8'))
 		promises.push(fs.promises.readFile(BASEPATH + static_dir + "main.css", 'utf8'))
+		promises.push(fs.promises.readFile(BASEPATH + static_dir + "instance/" + "icons.css", 'utf8'))
 	}
 
 	try   { r = await Promise.all(promises) }
@@ -51,7 +52,14 @@ const HandlePath = (viewpath:str, static_dir:str, json_configs:any, is_prod:bool
 	if (is_prod) {
 		const index_css_content = r[1]
 		const main_css_content = r[2]
+		const icons_css_content = r[3]
 		css_str = `	<style>${index_css_content}</style>
+					<script>
+						const iconsStyleSheet = new CSSStyleSheet();
+						iconsStyleSheet.replaceSync(\`${icons_css_content}\`);
+						window.iconscss = iconsStyleSheet;
+						document.adoptedStyleSheets.push(window.iconscss);
+					</script>
 					<script>
 						const mainStyleSheet = new CSSStyleSheet();
 						mainStyleSheet.replaceSync(\`${main_css_content}\`);
@@ -59,7 +67,7 @@ const HandlePath = (viewpath:str, static_dir:str, json_configs:any, is_prod:bool
 					</script>
 				   `
 	} else {
-		css_str = `<link rel="stylesheet" href="/assets/index.css"></link>`
+		css_str = `<link rel="stylesheet" href="/assets/index.css"></link><link rel="stylesheet" href="/assets/instance/icons.css"></link>`
 	}
 
 	const htmlstr = indexhtml.replace('<!--{--js_css--}-->', js_scripts_str + `\n\n\n` + css_str)

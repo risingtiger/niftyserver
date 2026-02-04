@@ -20,7 +20,7 @@
     "delay": 2500
   },
   "engines": {
-    "node": ">=22.0.0 <23.0.0"
+    "node": ">=24.0.0 <25.0.0"
   },
   "author": "Davis Hammon",
   "license": "Apache-2.0",

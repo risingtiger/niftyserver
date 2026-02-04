@@ -631,8 +631,6 @@ function parse_json_configs(json_configs:any) {
 
 	let data = (Buffer.from(a, 'base64').toString()).trim();
 
-	INSTANCE.HandleCommandLineCommand(data)
-
 	if (data == "start") {
 		bootstrapit()
 	}
