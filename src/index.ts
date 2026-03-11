@@ -416,10 +416,7 @@ async function serveview(req:any, res:any) {
 
 	if (self_extract && IS_PROD) {
 		try {
-			const p = performance.now()
 			const { returnstr, viewname } = await SelfExtractingBundle.Handle(path_str, STATIC_DIR, _json_configs)
-			const pp = performance.now()
-			console.log(pp-p)
 			rstr = returnstr
 			res.set('View-Name', viewname)
 		} catch (e) {
@@ -439,10 +436,7 @@ async function serveview(req:any, res:any) {
 		}
 	}
 
-	const pa = performance.now();
 	await Utils.Compress.Send(rstr, res)
-	const papa = performance.now();
-	console.log(papa-pa);
 }
 
 
@@ -536,13 +530,13 @@ async function startit() {
 
 function validate_request(res:any, req:any) {   return new Promise<boolean|object>((promiseres)=> {
 
+	const appversion = Number(req.headers["versionofapp"])
+
 	if ( APPVERSION===0 && VAR_NODE_ENV === "dev") {
 		promiseres(true)
 	}
 
 	else {
-
-		const appversion = Number(req.headers["versionofapp"])
 
 		if (appversion !== APPVERSION) {
 			res.set('updaterequired', 'true')

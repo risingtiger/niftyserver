@@ -55,8 +55,15 @@ async function SendNotification(db:Firestore, title:str, body:str, tags:str[]) {
 		const users_to_send_to:string[] = []
 
 		all_users.forEach((u:any)=> {
-			if (u.notifications.tags.some((t:any)=> tags.includes(t))) {
-				users_to_send_to.push(u)
+			if (!u.notifications?.tags?.some((t:any)=> tags.includes(t))) { return; }
+
+			if (u.notifications?.alwaysnotify) {
+				users_to_send_to.push(u);
+				return;
+			}
+
+			if (calculate_is_now_within_user_schedules(u)) {
+				users_to_send_to.push(u);
 			}
 		})
 
@@ -80,6 +87,33 @@ async function SendNotification(db:Firestore, title:str, body:str, tags:str[]) {
 		promise_res(1)
 	})
 }
+
+
+function calculate_is_now_within_user_schedules(user:any) {
+
+	if (!user.notifications?.schedules) { return false; }
+
+	const now = Math.floor(Date.now() / 1000);
+
+	for (const schedule of user.notifications.schedules) {
+		const user_local_now = now + schedule.timezone_offset;
+		const seconds_into_interval = user_local_now % schedule.interval;
+		const end = schedule.start + schedule.duration;
+
+		if (end > schedule.interval) { // handles wrap-around intervals (e.g. Sat night to Sun morning)
+			if (seconds_into_interval >= schedule.start || seconds_into_interval < (end % schedule.interval)) {
+				return true;
+			}
+		} else {
+			if (seconds_into_interval >= schedule.start && seconds_into_interval < end) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 
 
 

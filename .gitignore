@@ -8,6 +8,9 @@ target/
 static_dev/
 static_dist/
 
+/defs_client_symlink.ts
+/defs_instance_server_symlink.ts
+/defs_server_symlink.ts
 
 
 

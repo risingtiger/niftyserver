@@ -4,7 +4,7 @@ type str = string; //type int = number; type bool = boolean;
 
 import { FieldValue } from "@google-cloud/firestore"
 import { Firestore } from "firebase-admin/firestore";
-import { getMessaging }  from "firebase-admin/messaging";
+import { getMessaging, BatchResponse }  from "firebase-admin/messaging";
 
 
 
@@ -39,7 +39,7 @@ const Remove_Subscription = (db:Firestore, user_email:str) => new Promise<number
 
 
 
-async function Send_Msg(db:Firestore, title:str, body:str) {
+function Send_Msg(db:Firestore, title:str, body:str, tags:str[]) {
 
 	return new Promise<number>(async (res, rej)=> {
 
@@ -50,6 +50,7 @@ async function Send_Msg(db:Firestore, title:str, body:str) {
 			const regtokens:any[] = []
 			all_users.forEach((u:any)=> {
 				if (!u.fcm_token) { return }
+				if (!u.notifications?.tags?.some((t:any)=> tags.includes(t))) { return; }
 
 				if (u.notifications?.alwaysnotify) {
 					regtokens.push(u.fcm_token);
@@ -67,7 +68,8 @@ async function Send_Msg(db:Firestore, title:str, body:str) {
 			}
 
 			const message  =  { data: { title, body }, tokens: regtokens }
-			await getMessaging().sendEachForMulticast(message)
+			const response = await getMessaging().sendEachForMulticast(message)
+			handle_multicast_response(response, regtokens)
 
 			res(1)
 		} 
@@ -75,6 +77,20 @@ async function Send_Msg(db:Firestore, title:str, body:str) {
 		catch (err) { rej(); }
 	})
 }
+
+
+
+
+function handle_multicast_response(response:BatchResponse, tokens:string[]) {
+	response.responses.forEach((result, i) => {
+		if (result.success) {
+			console.log(`FCM send success for token: ${tokens[i]}`)
+			return
+		}
+		console.log(`FCM send failure for token: ${tokens[i]}`, result.error)
+	})
+}
+
 
 
 
