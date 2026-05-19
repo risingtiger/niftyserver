@@ -89,9 +89,9 @@ function Retrieve(db:any, pathstr:str[], opts:RetrieveOptsT[]|null|undefined) { 
 
 function Add(db:any, path:str, data:{[key:string]:any}) {   return new Promise<number|null>(async (res, _rej)=> {
 
-	let serverts = Math.round(Date.now())
+	let serverts = Math.round(Date.now() / 1000)
 
-	if (!data.id || data.ts) {  res(null); return; }
+	if (!data.id || !data.ts) {  res(null); return; }
 
 	if (data.ts < serverts - 5 || data.ts > serverts + 5) { res(null); return; }
 
@@ -100,7 +100,7 @@ function Add(db:any, path:str, data:{[key:string]:any}) {   return new Promise<n
 
 	ConvertRefPathsFromClient(db, data);
 
-    const r = await doc_ref.add(data).catch(()=> null);
+    const r = await doc_ref.set(data).catch(()=> null);
     if (r === null) { res(null); return; }
 
     res(1)

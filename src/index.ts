@@ -13,6 +13,7 @@ import pg from 'pg'
 import { initializeApp, cert }  from "firebase-admin/app";
 import { getFirestore }  from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
+import { getStorage } from "firebase-admin/storage";
 import { google as googleapis } from "googleapis";
 
 
@@ -26,6 +27,7 @@ import SelfExtractingBundle from "./self_extracting_bundle.js"
 import Logger from "./logger.js"
 import Emailing from "./emailing.js"
 import Utils from "./utils.js"
+import Ai from "./ai.js"
 
 
 declare var INSTANCE:ServerInstanceT // for LSP only
@@ -55,6 +57,7 @@ let   _json_configs = {}
 const app = express()
 
 let db:any = null;
+let storage:any = null;
 
 let sheets:any = {};
 
@@ -140,7 +143,6 @@ app.get('/v/*restofpath', serveview)
 
 
 async function assets_general(req:any, res:any) {
-	if (req.url.includes("shared_worker.js")) debugger;
 	const fileurl = req.url
 	const nocache = !req.url.includes("shared_worker.js")
     FileRequest.runit(fileurl, res, STATIC_DIR, IS_PROD, nocache);
@@ -180,7 +182,7 @@ async function refresh_auth(req:any, res:any) {
         res.status(200).send(JSON.stringify(data))
     })
     .catch((err:any) => {
-		res.statusMessage("unable to refresh auth: " + err);
+		res.statusMessage = "unable to refresh auth: " + err;
         res.status(401).send()
     })
 }
@@ -193,7 +195,7 @@ async function firestore_retrieve(req:any, res:any) {
     if (! await validate_request(res, req)) return 
 
     const r = await Firestore.Retrieve(db, req.body.paths, req.body.opts)
-	if (r === null) { res.statusMessage("unable to retrieve firestore"); res.status(400).send(); return; }
+	if (r === null) { res.statusMessage = "unable to retrieve firestore"; res.status(400).send(); return; }
 
     const jsoned = JSON.stringify(r)
     await Utils.Compress.Send(jsoned, res)
@@ -211,11 +213,11 @@ async function firestore_add(req:any, res:any) {
 	const exclude      = suppress_sse ? [sse_id] : [ ]
 
     const r = await Firestore.Add(db, req.body.path, req.body.data)
-	if (r === null) { res.statusMessage("unable to add firestore"); res.status(400).send(); return; }
+	if (r === null) { res.status(400).send(JSON.stringify({ code: 0, error: "unable to add firestore" })); return; }
 
     SSE.TriggerEvent("datasync_doc_add", { path: req.body.path, data:req.body.data }, { exclude });
 
-	res.status(200).send()
+	res.status(200).send(JSON.stringify({ code: 1 }))
 }
 
 
@@ -267,7 +269,7 @@ async function firestore_get_batch(req:any, res:any) {
     if (! await validate_request(res, req)) return 
 
     const r = await Firestore.GetBatch(db, req.body.paths, req.body.tses, req.body.runid)
-	if (!r) {  res.statusMessage("unable to get batch"); res.status(400).send(); return }
+	if (!r) {  res.statusMessage = "unable to get batch"; res.status(400).send(); return }
 
     const jsoned = JSON.stringify(r)
     await Utils.Compress.Send(jsoned, res)
@@ -282,7 +284,7 @@ async function influxdb_retrieve_series(req:any, res:any) {
 
     const rb = req.body
 
-    const results = await InfluxDB.Retrieve_Series(rb.bucket, rb.begins, rb.ends, rb.msrs, rb.fields, rb.tags, rb.intrv, rb.priors)
+    const results = await InfluxDB.Retrieve_Series(rb.bucket, rb.begins, rb.ends, rb.msrs, rb.fields, rb.tags, rb.intrv)
 	if (!results) { res.status(400).send(); return; }
 
     const jsoned = JSON.stringify(results)
@@ -414,7 +416,7 @@ async function serveview(req:any, res:any) {
 
 	const self_extract = req.query.self_extract === 'true'
 
-	if (self_extract && IS_PROD) {
+	if (self_extract && IS_PROD) { // self_extract is not actually used yet
 		try {
 			const { returnstr, viewname } = await SelfExtractingBundle.Handle(path_str, STATIC_DIR, _json_configs)
 			rstr = returnstr
@@ -500,7 +502,8 @@ async function init() { return new Promise(async (res, _rej)=> {
 		//
 	}
 
-	db     = getFirestore();
+	db      = getFirestore();
+	storage = getStorage();
 
     res(1)
 })}
@@ -578,7 +581,9 @@ async function bootstrapit() {
 	let servermains:ServerMainsT = {
 		app, 
 		db, 
+		storage,
 		pg:pgpool,
+		ai:Ai,
 		appversion:APPVERSION, 
 		sheets, 
 		push_subscriptions:Push_Subscriptions, 

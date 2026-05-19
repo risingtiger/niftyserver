@@ -7,16 +7,18 @@ export type GenericRowT = { [key:string]: any }
 // ssetriggers are 0:FIRESTORE, 1: FIRESTORE_DOC_ADD, 2: FIRESTORE_DOC_PATCH, 3: FIRESTORE_DOC_DELETE, 4: FIRESTORE_COLLECTION, 5: CUSTOM
 
 export type ServerMainsT = {
-	app:any, 
-	db:any, 
-	pg:any,
+	app:any, // Express app instance
+	db:any, // Firestore database instance 
+	pg:any, // Postgres client instance
+	storage:any, // Cloud Storage instance
+	ai:any,
 	appversion:number, 
 	sheets:any, 
 	push_subscriptions:any, 
 	firestore:any, 
 	influxdb:any, 
 	emailing:any,
-	sse:any,
+	sse:any, // Server Sent Events manager
 	utils:any,
 	validate_request:any,
 };

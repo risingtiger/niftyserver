@@ -17,4 +17,10 @@
 - use try catch blocks only in specific code line(s) that may fail. catch should return early, keeping happy path unindented. 
 
 
-- Do not run any build, test or run commands
+- 
+
+
+
+# Server 
+- IGNORE build process completely, as its handled by external build system. 
+- This is core server scaffolding, utility and logic
