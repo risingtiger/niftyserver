@@ -76,9 +76,6 @@ app.get(['/','/index.html'], (req:any, res:any) => {
 })
 
 
-app.get("/favicon.ico", (_req:any, res:any) => {
-	res.sendFile(process.cwd() + "/" + STATIC_DIR + '/media/pwticons/favicon.ico')
-})
 app.get("/apple-touch-icon.png", (_req:any, res:any) => {
 	res.sendFile(process.cwd() + "/" +  STATIC_DIR + '/media/pwticons/apple-touch-icon.png')
 })
@@ -98,8 +95,6 @@ app.get([
 
 
 app.post('/api/refresh_auth', refresh_auth)
-
-app.get('/api/reset_password', reset_password)
 
 app.get('/api/testdata', testdata)
 app.get('/api/ping', ping)
@@ -148,20 +143,6 @@ async function assets_general(req:any, res:any) {
     FileRequest.runit(fileurl, res, STATIC_DIR, IS_PROD, nocache);
 }
 
-
-
-
-async function reset_password(req:any, res:any) {
-
-	const auth = getAuth();
-	const link = await auth.generatePasswordResetLink(req.query.email).catch(()=>null)
-	if (!link) {
-		res.status(400).send()
-		return
-	}
-
-	res.status(200).send({link:link})
-}
 
 
 
@@ -531,45 +512,46 @@ async function startit() {
 
 
 
-function validate_request(res:any, req:any) {   return new Promise<boolean|object>((promiseres)=> {
+async function validate_request(res:any, req:any, whitelistemails:string[]|null = null):Promise<boolean|object> {
 
 	const appversion = Number(req.headers["versionofapp"])
 
-	if ( APPVERSION===0 && VAR_NODE_ENV === "dev") {
-		promiseres(true)
+	if (APPVERSION === 0 && VAR_NODE_ENV === "dev") return true
+
+	if (appversion !== APPVERSION) {
+		res.set('updaterequired', 'true')
+		res.status(410).send()
+		return false
 	}
 
-	else {
+	const authHeader = req.headers.authorization
+	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+		res.status(401).send()
+		return false
+	}
 
-		if (appversion !== APPVERSION) {
-			res.set('updaterequired', 'true')
-			res.status(410).send()
-			promiseres(false)
+	const id_token = authHeader.substring(7)
+	let decodedToken:object
+
+	try {
+		decodedToken = await getAuth().verifyIdToken(id_token)
+	} catch {
+		res.status(401).send()
+		return false
+	}
+
+	if (whitelistemails && whitelistemails.length > 0) {
+		const token_email = "email" in decodedToken && typeof decodedToken.email === "string" ? decodedToken.email.toLowerCase() : ""
+		const whitelist = whitelistemails.map((email) => email.toLowerCase())
+
+		if (!token_email || !whitelist.includes(token_email)) {
+			res.status(403).send()
 			return false
 		}
-
-		const authHeader = req.headers.authorization;
-		if (!authHeader || !authHeader.startsWith('Bearer ')) {
-			res.status(401).send();
-			promiseres(false);
-			return;
-		}
-		const id_token = authHeader.substring(7);
-
-		getAuth()
-			.verifyIdToken(id_token)
-
-			.then((decodedToken) => {
-				promiseres(decodedToken)
-			})
-
-			.catch((_error) => {
-				res.status(401).send()
-				promiseres(false)
-			})
 	}
 
-})}
+	return decodedToken
+}
 
 
 

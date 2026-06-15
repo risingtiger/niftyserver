@@ -198,10 +198,10 @@ function Delete(db:any, path:str, oldts:num, ts:num) {   return new Promise<Gene
 			const docsnapshot = await transaction.get(doc_ref);
 			
 			if (!docsnapshot.exists) {					return { code:10 };   }
-			if ((docsnapshot.doc()).ts >= oldts) {		return { code:11 };   }
+			if ((docsnapshot.data()).ts > oldts) {		return { code:11 };   }
 
 			await transaction.delete(doc_ref);
-			await db.collection('__deleted_docs').doc().set({ collection:path_collection, docid:doc_id, ts });
+			await transaction.set(db.collection('__deleted_docs').doc(), { collection:path_collection, docid:doc_id, ts });
 			return { code:1 };	
 		});
 		res(r);
